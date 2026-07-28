@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Pagina } from "@/components/Pagina";
-import { FichaCard } from "@/components/FichaCard";
+import { SeccionFichas } from "@/components/SeccionFichas";
 import { logopedia } from "@/data/logopedia";
 
 const TITULO = "Logopedia y deglución — Cuidados ELA";
@@ -21,15 +20,11 @@ export const Route = createFileRoute("/logopedia")({
 
 function LogopediaPage() {
   return (
-    <Pagina
+    <SeccionFichas
       titulo="Logopedia"
       descripcion="Voz, articulación y alimentación segura. Pulsa una ficha para ver los pasos y el vídeo."
-    >
-      <div className="grid gap-4 sm:grid-cols-2">
-        {logopedia.map((ficha) => (
-          <FichaCard key={ficha.id} ficha={ficha} />
-        ))}
-      </div>
-    </Pagina>
+      clave="logopedia"
+      iniciales={logopedia}
+    />
   );
 }

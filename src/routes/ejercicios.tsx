@@ -1,11 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Pagina } from "@/components/Pagina";
-import { FichaCard } from "@/components/FichaCard";
+import { SeccionFichas } from "@/components/SeccionFichas";
 import { ejercicios } from "@/data/ejercicios";
 
-const TITULO = "Ejercicios y movilizaciones — Cuidados ELA";
+const TITULO = "Ejercicios y movilidad — Cuidados ELA";
 const DESCRIPCION =
-  "Fichas de movilidad pasiva, fisioterapia respiratoria y transferencias seguras, con pasos y vídeo en el popup.";
+  "Fichas de movilidad pasiva, ejercicio respiratorio y transferencias seguras, con pasos e instrucciones en vídeo.";
 
 export const Route = createFileRoute("/ejercicios")({
   head: () => ({
@@ -21,15 +20,11 @@ export const Route = createFileRoute("/ejercicios")({
 
 function EjerciciosPage() {
   return (
-    <Pagina
+    <SeccionFichas
       titulo="Ejercicios"
-      descripcion="Pulsa en cualquier ficha para ver el paso a paso y el vídeo. Movimientos lentos y nunca hasta el dolor."
-    >
-      <div className="grid gap-4 sm:grid-cols-2">
-        {ejercicios.map((ficha) => (
-          <FichaCard key={ficha.id} ficha={ficha} />
-        ))}
-      </div>
-    </Pagina>
+      descripcion="Movilidad, respiración y transferencias. Pulsa una ficha para ver los pasos y el vídeo."
+      clave="ejercicios"
+      iniciales={ejercicios}
+    />
   );
 }
