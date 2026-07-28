@@ -1,11 +1,17 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { Phone, ShieldAlert } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState } from "react";
+import { Phone, Plus, ShieldAlert } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Pagina } from "@/components/Pagina";
-import { contactos, protocolos } from "@/data/contactos";
+import { Acciones } from "@/components/Acciones";
+import { EditorDialogo, type Campo, type Valores } from "@/components/EditorDialogo";
+import { useColeccion } from "@/hooks/use-coleccion";
+import { protocolos } from "@/data/contactos";
+import type { Protocolo } from "@/data/tipos";
 
-const TITULO = "Teléfonos de emergencia — Cuidados ELA";
+const TITULO = "Protocolos de emergencia — Cuidados ELA";
 const DESCRIPCION =
-  "Teléfonos de emergencia del equipo de cuidados y protocolo de actuación ante atragantamiento, disnea o fallo del ventilador.";
+  "Qué hacer ante atragantamiento, dificultad para respirar, fallo del ventilador o caída, paso a paso.";
 
 export const Route = createFileRoute("/emergencias")({
   head: () => ({
@@ -19,66 +25,81 @@ export const Route = createFileRoute("/emergencias")({
   component: EmergenciasPage,
 });
 
+const CAMPOS: Campo[] = [
+  { nombre: "situacion", etiqueta: "Situación", tipo: "texto", marcador: "Atragantamiento" },
+  { nombre: "pasos", etiqueta: "Pasos", tipo: "lista", ayuda: "Un paso por línea, en orden." },
+];
+
+const VACIO: Valores = { situacion: "", pasos: [] };
+
 function EmergenciasPage() {
+  const { items, crear, actualizar, eliminar } = useColeccion<Protocolo>("protocolos", protocolos);
+  const [editando, setEditando] = useState<Protocolo | null>(null);
+  const [creando, setCreando] = useState(false);
+
+  const guardar = (valores: Valores) => {
+    const base = {
+      situacion: (valores.situacion as string).trim() || "Sin título",
+      pasos: (valores.pasos as string[]).map((linea) => linea.trim()).filter(Boolean),
+    };
+    if (editando) actualizar({ ...editando, ...base });
+    else crear(base);
+  };
+
   return (
     <Pagina
       titulo="Emergencias"
-      descripcion="Pulsa un número para llamar directamente. Mantén la calma y ve por orden."
+      descripcion="Mantén la calma y ve por orden. Los teléfonos están en la sección Teléfonos."
+      accion={
+        <Button
+          onClick={() => {
+            setEditando(null);
+            setCreando(true);
+          }}
+        >
+          <Plus className="h-4 w-4" />
+          Añadir protocolo
+        </Button>
+      }
     >
-      <section className="mb-8 grid gap-3 sm:grid-cols-2">
-        {contactos.map((contacto) => (
-          <a
-            key={contacto.id}
-            href={`tel:${contacto.telefono.replace(/\s/g, "")}`}
-            className={[
-              "flex items-center gap-4 rounded-2xl border p-5 transition",
-              contacto.urgente
-                ? "border-destructive/40 bg-destructive/5 hover:bg-destructive/10"
-                : "border-border bg-card hover:border-primary/40 hover:shadow-sm",
-            ].join(" ")}
-          >
-            <span
-              className={[
-                "flex h-12 w-12 shrink-0 items-center justify-center rounded-full",
-                contacto.urgente
-                  ? "bg-destructive text-destructive-foreground"
-                  : "bg-primary/10 text-primary",
-              ].join(" ")}
-            >
-              <Phone className="h-5 w-5" />
-            </span>
-            <span className="min-w-0">
-              <span className="block text-lg font-semibold">{contacto.nombre}</span>
-              <span className="block text-sm text-muted-foreground">{contacto.rol}</span>
-              <span
-                className={[
-                  "mt-1 block text-xl font-bold tracking-tight",
-                  contacto.urgente ? "text-destructive" : "text-primary",
-                ].join(" ")}
-              >
-                {contacto.telefono}
-              </span>
-              {contacto.nota ? (
-                <span className="mt-1 block text-sm text-muted-foreground">{contacto.nota}</span>
-              ) : null}
-            </span>
-          </a>
-        ))}
-      </section>
+      <Link
+        to="/telefonos"
+        className="border-destructive/40 bg-destructive/5 hover:bg-destructive/10 mb-8 flex items-center gap-4 rounded-2xl border p-5 transition"
+      >
+        <span className="bg-destructive text-destructive-foreground flex h-12 w-12 shrink-0 items-center justify-center rounded-full">
+          <Phone className="h-5 w-5" />
+        </span>
+        <span>
+          <span className="block text-lg font-semibold">Ir a los teléfonos</span>
+          <span className="text-muted-foreground block text-sm">
+            112, neumología, enfermería y servicio técnico.
+          </span>
+        </span>
+      </Link>
 
       <section>
         <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold">
-          <ShieldAlert className="h-5 w-5 text-destructive" />
+          <ShieldAlert className="text-destructive h-5 w-5" />
           Qué hacer si…
         </h2>
         <div className="grid gap-4 sm:grid-cols-2">
-          {protocolos.map((protocolo) => (
-            <article key={protocolo.id} className="rounded-2xl border border-border bg-card p-5">
-              <h3 className="text-lg font-semibold">{protocolo.situacion}</h3>
+          {items.map((protocolo) => (
+            <article key={protocolo.id} className="border-border bg-card rounded-2xl border p-5">
+              <div className="flex items-start justify-between gap-2">
+                <h3 className="text-lg font-semibold">{protocolo.situacion}</h3>
+                <Acciones
+                  nombre={protocolo.situacion}
+                  onEditar={() => {
+                    setCreando(false);
+                    setEditando(protocolo);
+                  }}
+                  onEliminar={() => eliminar(protocolo.id)}
+                />
+              </div>
               <ol className="mt-3 space-y-2">
                 {protocolo.pasos.map((paso, indice) => (
                   <li key={paso} className="flex gap-3 text-base leading-relaxed">
-                    <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-destructive/10 text-sm font-semibold text-destructive">
+                    <span className="bg-destructive/10 text-destructive mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-sm font-semibold">
                       {indice + 1}
                     </span>
                     <span>{paso}</span>
@@ -88,7 +109,29 @@ function EmergenciasPage() {
             </article>
           ))}
         </div>
+
+        {items.length === 0 ? (
+          <p className="border-border text-muted-foreground rounded-2xl border border-dashed p-8 text-center">
+            No hay protocolos. Pulsa «Añadir protocolo».
+          </p>
+        ) : null}
       </section>
+
+      <EditorDialogo
+        abierto={creando || editando !== null}
+        onOpenChange={(valor) => {
+          if (!valor) {
+            setCreando(false);
+            setEditando(null);
+          }
+        }}
+        titulo={editando ? "Editar protocolo" : "Nuevo protocolo"}
+        campos={CAMPOS}
+        valores={
+          editando ? { situacion: editando.situacion, pasos: editando.pasos } : VACIO
+        }
+        onGuardar={guardar}
+      />
     </Pagina>
   );
 }

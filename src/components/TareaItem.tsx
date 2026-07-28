@@ -1,5 +1,6 @@
 import { Check, Clock, PlayCircle } from "lucide-react";
 import { CATEGORIAS } from "@/lib/agenda";
+import { Acciones } from "@/components/Acciones";
 import type { Tarea } from "@/data/tipos";
 
 interface Props {
@@ -7,9 +8,11 @@ interface Props {
   hecha: boolean;
   onAbrir: () => void;
   onAlternar: () => void;
+  onEditar?: () => void;
+  onEliminar?: () => void;
 }
 
-export function TareaItem({ tarea, hecha, onAbrir, onAlternar }: Props) {
+export function TareaItem({ tarea, hecha, onAbrir, onAlternar, onEditar, onEliminar }: Props) {
   const categoria = CATEGORIAS[tarea.categoria];
 
   return (
@@ -65,6 +68,12 @@ export function TareaItem({ tarea, hecha, onAbrir, onAlternar }: Props) {
         </h3>
         <p className="mt-0.5 text-sm text-muted-foreground">{tarea.resumen}</p>
       </button>
+
+      {onEditar && onEliminar ? (
+        <div className="flex items-center pr-3">
+          <Acciones nombre={tarea.titulo} onEditar={onEditar} onEliminar={onEliminar} />
+        </div>
+      ) : null}
     </div>
   );
 }
