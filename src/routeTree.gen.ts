@@ -10,12 +10,18 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as MedicacionRouteImport } from './routes/medicacion'
+import { Route as LogopediaRouteImport } from './routes/logopedia'
 import { Route as EjerciciosRouteImport } from './routes/ejercicios'
 import { Route as IndexRouteImport } from './routes/index'
 
 const MedicacionRoute = MedicacionRouteImport.update({
   id: '/medicacion',
   path: '/medicacion',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LogopediaRoute = LogopediaRouteImport.update({
+  id: '/logopedia',
+  path: '/logopedia',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EjerciciosRoute = EjerciciosRouteImport.update({
@@ -32,30 +38,34 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/ejercicios': typeof EjerciciosRoute
+  '/logopedia': typeof LogopediaRoute
   '/medicacion': typeof MedicacionRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/ejercicios': typeof EjerciciosRoute
+  '/logopedia': typeof LogopediaRoute
   '/medicacion': typeof MedicacionRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/ejercicios': typeof EjerciciosRoute
+  '/logopedia': typeof LogopediaRoute
   '/medicacion': typeof MedicacionRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/ejercicios' | '/medicacion'
+  fullPaths: '/' | '/ejercicios' | '/logopedia' | '/medicacion'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/ejercicios' | '/medicacion'
-  id: '__root__' | '/' | '/ejercicios' | '/medicacion'
+  to: '/' | '/ejercicios' | '/logopedia' | '/medicacion'
+  id: '__root__' | '/' | '/ejercicios' | '/logopedia' | '/medicacion'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   EjerciciosRoute: typeof EjerciciosRoute
+  LogopediaRoute: typeof LogopediaRoute
   MedicacionRoute: typeof MedicacionRoute
 }
 
@@ -66,6 +76,13 @@ declare module '@tanstack/react-router' {
       path: '/medicacion'
       fullPath: '/medicacion'
       preLoaderRoute: typeof MedicacionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/logopedia': {
+      id: '/logopedia'
+      path: '/logopedia'
+      fullPath: '/logopedia'
+      preLoaderRoute: typeof LogopediaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/ejercicios': {
@@ -88,6 +105,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   EjerciciosRoute: EjerciciosRoute,
+  LogopediaRoute: LogopediaRoute,
   MedicacionRoute: MedicacionRoute,
 }
 export const routeTree = rootRouteImport
