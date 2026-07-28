@@ -1,5 +1,5 @@
 import type { Categoria, Franja, Tarea } from "@/data/tipos";
-import { tareas } from "@/data/tareas";
+import { tareas as tareasIniciales } from "@/data/tareas";
 
 export const FRANJAS: { id: Franja; etiqueta: string }[] = [
   { id: "manana", etiqueta: "Mañana" },
@@ -24,11 +24,11 @@ export function claveFecha(fecha: Date): string {
   return `${fecha.getFullYear()}-${mes}-${dia}`;
 }
 
-export function tareasDelDia(fecha: Date): Tarea[] {
+export function tareasDelDia(fecha: Date, lista: Tarea[] = tareasIniciales): Tarea[] {
   const clave = claveFecha(fecha);
   const diaSemana = fecha.getDay();
 
-  return tareas
+  return lista
     .filter((tarea) => {
       const r = tarea.recurrencia;
       if (r.tipo === "diaria") return true;
