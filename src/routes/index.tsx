@@ -1,13 +1,25 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
+import { Plus } from "lucide-react";
 import { Calendario } from "@/components/Calendario";
 import { TareaItem } from "@/components/TareaItem";
 import { FichaDialogo } from "@/components/FichaDialogo";
+import { EditorDialogo, type Campo, type Valores } from "@/components/EditorDialogo";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useCompletadas } from "@/hooks/use-completadas";
-import { CATEGORIAS, FRANJAS, claveFecha, esMismoDia, formatoLargo, tareasDelDia } from "@/lib/agenda";
-import type { Tarea } from "@/data/tipos";
+import { useColeccion } from "@/hooks/use-coleccion";
+import { tareas as tareasIniciales } from "@/data/tareas";
+import {
+  CATEGORIAS,
+  FRANJAS,
+  claveFecha,
+  esMismoDia,
+  formatoLargo,
+  tareasDelDia,
+} from "@/lib/agenda";
+import type { Categoria, Franja, Tarea } from "@/data/tipos";
 
 const TITULO = "Tareas del día — Cuidados ELA";
 const DESCRIPCION =
@@ -25,37 +37,159 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
+const CAMPOS: Campo[] = [
+  { nombre: "titulo", etiqueta: "Título", tipo: "texto" },
+  { nombre: "resumen", etiqueta: "Resumen", tipo: "area" },
+  {
+    nombre: "categoria",
+    etiqueta: "Categoría",
+    tipo: "select",
+    opciones: (Object.keys(CATEGORIAS) as Categoria[]).map((clave) => ({
+      valor: clave,
+      etiqueta: CATEGORIAS[clave].etiqueta,
+    })),
+  },
+  {
+    nombre: "franja",
+    etiqueta: "Franja del día",
+    tipo: "select",
+    opciones: FRANJAS.map((franja) => ({ valor: franja.id, etiqueta: franja.etiqueta })),
+  },
+  { nombre: "hora", etiqueta: "Hora", tipo: "texto", marcador: "08:00" },
+  { nombre: "duracion", etiqueta: "Duración", tipo: "texto", marcador: "15 min" },
+  {
+    nombre: "recurrenciaTipo",
+    etiqueta: "Se repite",
+    tipo: "select",
+    opciones: [
+      { valor: "diaria", etiqueta: "Todos los días" },
+      { valor: "semanal", etiqueta: "Días concretos de la semana" },
+      { valor: "fecha", etiqueta: "Fechas sueltas" },
+    ],
+  },
+  { nombre: "recurrenciaDias", etiqueta: "Días de la semana", tipo: "dias" },
+  {
+    nombre: "recurrenciaFechas",
+    etiqueta: "Fechas",
+    tipo: "lista",
+    ayuda: "Una fecha por línea en formato AAAA-MM-DD.",
+  },
+  { nombre: "pasos", etiqueta: "Pasos", tipo: "lista", ayuda: "Un paso por línea." },
+  { nombre: "avisos", etiqueta: "Avisos importantes", tipo: "lista" },
+  {
+    nombre: "videoYoutube",
+    etiqueta: "ID del vídeo de YouTube",
+    tipo: "texto",
+    ayuda: "Solo el ID, por ejemplo dQw4w9WgXcQ.",
+  },
+];
+
+function valoresVacios(fecha: Date): Valores {
+  return {
+    titulo: "",
+    resumen: "",
+    categoria: "higiene",
+    franja: "manana",
+    hora: "",
+    duracion: "",
+    recurrenciaTipo: "diaria",
+    recurrenciaDias: [],
+    recurrenciaFechas: [claveFecha(fecha)],
+    pasos: [],
+    avisos: [],
+    videoYoutube: "",
+  };
+}
+
+function aValores(tarea: Tarea): Valores {
+  return {
+    titulo: tarea.titulo,
+    resumen: tarea.resumen,
+    categoria: tarea.categoria,
+    franja: tarea.franja,
+    hora: tarea.hora ?? "",
+    duracion: tarea.duracion ?? "",
+    recurrenciaTipo: tarea.recurrencia.tipo,
+    recurrenciaDias: tarea.recurrencia.tipo === "semanal" ? tarea.recurrencia.dias : [],
+    recurrenciaFechas: tarea.recurrencia.tipo === "fecha" ? tarea.recurrencia.fechas : [],
+    pasos: tarea.pasos,
+    avisos: tarea.avisos ?? [],
+    videoYoutube: tarea.videoYoutube ?? "",
+  };
+}
+
+function limpiar(lista: string[]) {
+  return lista.map((linea) => linea.trim()).filter(Boolean);
+}
+
 function Index() {
   const hoy = useMemo(() => new Date(), []);
   const [seleccionada, setSeleccionada] = useState<Date>(hoy);
   const [mes, setMes] = useState<Date>(new Date(hoy.getFullYear(), hoy.getMonth(), 1));
   const [abierta, setAbierta] = useState<Tarea | null>(null);
+  const [editando, setEditando] = useState<Tarea | null>(null);
+  const [creando, setCreando] = useState(false);
 
+  const { items, crear, actualizar, eliminar } = useColeccion<Tarea>("tareas", tareasIniciales);
   const clave = claveFecha(seleccionada);
   const { completadas, alternar } = useCompletadas(clave);
-  const delDia = useMemo(() => tareasDelDia(seleccionada), [seleccionada]);
+  const delDia = useMemo(() => tareasDelDia(seleccionada, items), [seleccionada, items]);
   const hechas = delDia.filter((tarea) => completadas.includes(tarea.id)).length;
+
+  const guardar = (valores: Valores) => {
+    const tipo = valores.recurrenciaTipo as "diaria" | "semanal" | "fecha";
+    const base = {
+      titulo: (valores.titulo as string).trim() || "Sin título",
+      resumen: valores.resumen as string,
+      categoria: valores.categoria as Categoria,
+      franja: valores.franja as Franja,
+      hora: (valores.hora as string).trim() || undefined,
+      duracion: (valores.duracion as string).trim() || undefined,
+      pasos: limpiar(valores.pasos as string[]),
+      avisos: limpiar(valores.avisos as string[]),
+      videoYoutube: (valores.videoYoutube as string).trim() || undefined,
+      recurrencia:
+        tipo === "semanal"
+          ? { tipo: "semanal" as const, dias: valores.recurrenciaDias as number[] }
+          : tipo === "fecha"
+            ? { tipo: "fecha" as const, fechas: limpiar(valores.recurrenciaFechas as string[]) }
+            : { tipo: "diaria" as const },
+    };
+    if (editando) actualizar({ ...editando, ...base });
+    else crear(base);
+  };
 
   return (
     <main className="mx-auto max-w-5xl px-4 pt-6 pb-28 md:px-6 md:pb-16">
-      <header className="mb-6">
-        <p className="text-sm font-medium text-primary">
-          {esMismoDia(seleccionada, hoy) ? "Hoy" : "Día seleccionado"}
-        </p>
-        <h1 className="mt-1 text-3xl font-bold tracking-tight capitalize md:text-4xl">
-          {formatoLargo(seleccionada)}
-        </h1>
-        <div className="mt-4 max-w-md">
-          <div className="mb-2 flex items-center justify-between text-sm text-muted-foreground">
-            <span>
-              {hechas} de {delDia.length} tareas hechas
-            </span>
-            {delDia.length > 0 && hechas === delDia.length ? (
-              <span className="font-medium text-primary">¡Día completo!</span>
-            ) : null}
+      <header className="mb-6 flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <p className="text-primary text-sm font-medium">
+            {esMismoDia(seleccionada, hoy) ? "Hoy" : "Día seleccionado"}
+          </p>
+          <h1 className="mt-1 text-3xl font-bold tracking-tight capitalize md:text-4xl">
+            {formatoLargo(seleccionada)}
+          </h1>
+          <div className="mt-4 max-w-md">
+            <div className="text-muted-foreground mb-2 flex items-center justify-between text-sm">
+              <span>
+                {hechas} de {delDia.length} tareas hechas
+              </span>
+              {delDia.length > 0 && hechas === delDia.length ? (
+                <span className="text-primary font-medium">¡Día completo!</span>
+              ) : null}
+            </div>
+            <Progress value={delDia.length ? (hechas / delDia.length) * 100 : 0} />
           </div>
-          <Progress value={delDia.length ? (hechas / delDia.length) * 100 : 0} />
         </div>
+        <Button
+          onClick={() => {
+            setEditando(null);
+            setCreando(true);
+          }}
+        >
+          <Plus className="h-4 w-4" />
+          Añadir tarea
+        </Button>
       </header>
 
       <div className="grid gap-6 md:grid-cols-[320px_1fr] md:items-start">
@@ -70,8 +204,8 @@ function Index() {
               setMes(new Date(fecha.getFullYear(), fecha.getMonth(), 1));
             }}
           />
-          <p className="px-1 text-xs text-muted-foreground">
-            Las tareas marcadas se guardan en este dispositivo, no se comparten entre teléfonos.
+          <p className="text-muted-foreground px-1 text-xs">
+            Las tareas marcadas y los cambios que hagas se guardan en este dispositivo.
           </p>
         </div>
 
@@ -82,7 +216,7 @@ function Index() {
 
             return (
               <section key={franja.id}>
-                <h2 className="mb-3 text-sm font-semibold tracking-wide text-muted-foreground uppercase">
+                <h2 className="text-muted-foreground mb-3 text-sm font-semibold tracking-wide uppercase">
                   {franja.etiqueta}
                 </h2>
                 <div className="space-y-3">
@@ -93,6 +227,11 @@ function Index() {
                       hecha={completadas.includes(tarea.id)}
                       onAbrir={() => setAbierta(tarea)}
                       onAlternar={() => alternar(tarea.id)}
+                      onEditar={() => {
+                        setCreando(false);
+                        setEditando(tarea);
+                      }}
+                      onEliminar={() => eliminar(tarea.id)}
                     />
                   ))}
                 </div>
@@ -101,7 +240,7 @@ function Index() {
           })}
 
           {delDia.length === 0 ? (
-            <p className="rounded-2xl border border-dashed border-border p-8 text-center text-muted-foreground">
+            <p className="border-border text-muted-foreground rounded-2xl border border-dashed p-8 text-center">
               No hay tareas programadas para este día.
             </p>
           ) : null}
@@ -137,7 +276,21 @@ function Index() {
         />
       ) : null}
 
-      <p className="mt-12 border-t border-border pt-6 text-sm text-muted-foreground">
+      <EditorDialogo
+        abierto={creando || editando !== null}
+        onOpenChange={(valor) => {
+          if (!valor) {
+            setCreando(false);
+            setEditando(null);
+          }
+        }}
+        titulo={editando ? "Editar tarea" : "Nueva tarea"}
+        campos={CAMPOS}
+        valores={editando ? aValores(editando) : valoresVacios(seleccionada)}
+        onGuardar={guardar}
+      />
+
+      <p className="border-border text-muted-foreground mt-12 border-t pt-6 text-sm">
         Esta web es una ayuda organizativa para el equipo de cuidados. No sustituye las
         indicaciones del equipo médico.
       </p>
