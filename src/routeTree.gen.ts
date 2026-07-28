@@ -9,12 +9,18 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TelefonosRouteImport } from './routes/telefonos'
 import { Route as MedicacionRouteImport } from './routes/medicacion'
 import { Route as LogopediaRouteImport } from './routes/logopedia'
 import { Route as EmergenciasRouteImport } from './routes/emergencias'
 import { Route as EjerciciosRouteImport } from './routes/ejercicios'
 import { Route as IndexRouteImport } from './routes/index'
 
+const TelefonosRoute = TelefonosRouteImport.update({
+  id: '/telefonos',
+  path: '/telefonos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MedicacionRoute = MedicacionRouteImport.update({
   id: '/medicacion',
   path: '/medicacion',
@@ -47,6 +53,7 @@ export interface FileRoutesByFullPath {
   '/emergencias': typeof EmergenciasRoute
   '/logopedia': typeof LogopediaRoute
   '/medicacion': typeof MedicacionRoute
+  '/telefonos': typeof TelefonosRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +61,7 @@ export interface FileRoutesByTo {
   '/emergencias': typeof EmergenciasRoute
   '/logopedia': typeof LogopediaRoute
   '/medicacion': typeof MedicacionRoute
+  '/telefonos': typeof TelefonosRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,12 +70,25 @@ export interface FileRoutesById {
   '/emergencias': typeof EmergenciasRoute
   '/logopedia': typeof LogopediaRoute
   '/medicacion': typeof MedicacionRoute
+  '/telefonos': typeof TelefonosRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/ejercicios' | '/emergencias' | '/logopedia' | '/medicacion'
+  fullPaths:
+    | '/'
+    | '/ejercicios'
+    | '/emergencias'
+    | '/logopedia'
+    | '/medicacion'
+    | '/telefonos'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/ejercicios' | '/emergencias' | '/logopedia' | '/medicacion'
+  to:
+    | '/'
+    | '/ejercicios'
+    | '/emergencias'
+    | '/logopedia'
+    | '/medicacion'
+    | '/telefonos'
   id:
     | '__root__'
     | '/'
@@ -75,6 +96,7 @@ export interface FileRouteTypes {
     | '/emergencias'
     | '/logopedia'
     | '/medicacion'
+    | '/telefonos'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -83,10 +105,18 @@ export interface RootRouteChildren {
   EmergenciasRoute: typeof EmergenciasRoute
   LogopediaRoute: typeof LogopediaRoute
   MedicacionRoute: typeof MedicacionRoute
+  TelefonosRoute: typeof TelefonosRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/telefonos': {
+      id: '/telefonos'
+      path: '/telefonos'
+      fullPath: '/telefonos'
+      preLoaderRoute: typeof TelefonosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/medicacion': {
       id: '/medicacion'
       path: '/medicacion'
@@ -131,6 +161,7 @@ const rootRouteChildren: RootRouteChildren = {
   EmergenciasRoute: EmergenciasRoute,
   LogopediaRoute: LogopediaRoute,
   MedicacionRoute: MedicacionRoute,
+  TelefonosRoute: TelefonosRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
