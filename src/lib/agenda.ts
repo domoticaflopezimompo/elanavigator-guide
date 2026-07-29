@@ -28,14 +28,13 @@ export function tareasDelDia(fecha: Date, lista: Tarea[] = tareasIniciales): Tar
   const clave = claveFecha(fecha);
   const diaSemana = fecha.getDay();
 
-  return lista
-    .filter((tarea) => {
-      const r = tarea.recurrencia;
-      if (r.tipo === "diaria") return true;
-      if (r.tipo === "semanal") return r.dias.includes(diaSemana);
-      return r.fechas.includes(clave);
-    })
-    .sort((a, b) => (a.hora ?? "").localeCompare(b.hora ?? ""));
+  // Se respeta el orden manual de la lista (se puede reordenar con las flechas).
+  return lista.filter((tarea) => {
+    const r = tarea.recurrencia;
+    if (r.tipo === "diaria") return true;
+    if (r.tipo === "semanal") return r.dias.includes(diaSemana);
+    return r.fechas.includes(clave);
+  });
 }
 
 export function esMismoDia(a: Date, b: Date): boolean {
