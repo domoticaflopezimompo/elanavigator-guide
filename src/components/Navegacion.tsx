@@ -1,13 +1,22 @@
 import { Link } from "@tanstack/react-router";
-import { CalendarDays, Pill, Dumbbell, MessageCircle, Phone, ShieldAlert } from "lucide-react";
+import {
+  CalendarDays,
+  Pill,
+  HeartPulse,
+  Dumbbell,
+  MessageCircle,
+  Phone,
+  ShieldAlert,
+} from "lucide-react";
 
 const ENLACES = [
   { to: "/", etiqueta: "Hoy", Icono: CalendarDays },
   { to: "/medicacion", etiqueta: "Medicación", Icono: Pill },
+  { to: "/cuidados", etiqueta: "Cuidados", Icono: HeartPulse },
   { to: "/ejercicios", etiqueta: "Ejercicios", Icono: Dumbbell },
   { to: "/logopedia", etiqueta: "Logopedia", Icono: MessageCircle },
-  { to: "/telefonos", etiqueta: "Teléfonos", Icono: Phone },
   { to: "/emergencias", etiqueta: "Emergencias", Icono: ShieldAlert },
+  { to: "/telefonos", etiqueta: "Teléfonos", Icono: Phone },
 ] as const;
 
 export function CabeceraEscritorio() {
@@ -48,7 +57,7 @@ export function CabeceraEscritorio() {
 export function BarraMovil() {
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
-      <div className="grid grid-cols-6">
+      <div className="grid grid-cols-7">
         {ENLACES.map(({ to, etiqueta, Icono }) => (
           <Link
             key={to}

@@ -1,33 +1,69 @@
-import { useCallback, useEffect, useState } from "react";
-
-const PREFIJO = "ela-cuidadores:datos:";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 /**
- * Colección editable guardada en este dispositivo (localStorage).
- * Parte de los datos iniciales del proyecto y permite crear, editar y borrar.
+ * Colección compartida: se guarda en la nube, así todos los dispositivos
+ * que abren la web ven y editan exactamente el mismo contenido.
  */
 export function useColeccion<T extends { id: string }>(clave: string, iniciales: T[]) {
   const [items, setItems] = useState<T[]>(iniciales);
   const [cargado, setCargado] = useState(false);
+  const inicialesRef = useRef(iniciales);
+  inicialesRef.current = iniciales;
 
   useEffect(() => {
-    try {
-      const guardado = window.localStorage.getItem(PREFIJO + clave);
-      if (guardado) setItems(JSON.parse(guardado) as T[]);
-    } catch {
-      /* almacenamiento no disponible */
-    }
-    setCargado(true);
+    let activo = true;
+
+    const cargar = async () => {
+      const { data } = await supabase
+        .from("colecciones")
+        .select("datos")
+        .eq("clave", clave)
+        .maybeSingle();
+
+      if (!activo) return;
+
+      if (data) {
+        setItems((data.datos as unknown as T[]) ?? []);
+      } else {
+        // Primera vez: sembramos el contenido inicial en la nube.
+        await supabase
+          .from("colecciones")
+          .upsert({ clave, datos: inicialesRef.current as never }, { onConflict: "clave" });
+        if (activo) setItems(inicialesRef.current);
+      }
+      if (activo) setCargado(true);
+    };
+
+    void cargar();
+
+    const canal = supabase
+      .channel(`colecciones-${clave}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "colecciones", filter: `clave=eq.${clave}` },
+        (payload) => {
+          const fila = payload.new as { datos?: T[] } | null;
+          if (fila?.datos) setItems(fila.datos);
+        },
+      )
+      .subscribe();
+
+    return () => {
+      activo = false;
+      void supabase.removeChannel(canal);
+    };
   }, [clave]);
 
   const persistir = useCallback(
     (siguientes: T[]) => {
       setItems(siguientes);
-      try {
-        window.localStorage.setItem(PREFIJO + clave, JSON.stringify(siguientes));
-      } catch {
-        /* almacenamiento no disponible */
-      }
+      void supabase
+        .from("colecciones")
+        .upsert(
+          { clave, datos: siguientes as never, updated_at: new Date().toISOString() },
+          { onConflict: "clave" },
+        );
     },
     [clave],
   );
@@ -50,7 +86,7 @@ export function useColeccion<T extends { id: string }>(clave: string, iniciales:
     [items, persistir],
   );
 
-  const restaurar = useCallback(() => persistir(iniciales), [iniciales, persistir]);
+  const restaurar = useCallback(() => persistir(inicialesRef.current), [persistir]);
 
   return { items, cargado, crear, actualizar, eliminar, restaurar };
 }
