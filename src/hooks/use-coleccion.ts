@@ -102,5 +102,18 @@ export function useColeccion<T extends { id: string }>(clave: string, iniciales:
     [items, persistir],
   );
 
-  return { items, cargado, crear, actualizar, eliminar, restaurar, mover };
+  /** Intercambia la posición de dos elementos. */
+  const intercambiar = useCallback(
+    (idA: string, idB: string) => {
+      const a = items.findIndex((actual) => actual.id === idA);
+      const b = items.findIndex((actual) => actual.id === idB);
+      if (a === -1 || b === -1) return;
+      const siguientes = [...items];
+      [siguientes[a], siguientes[b]] = [siguientes[b], siguientes[a]];
+      persistir(siguientes);
+    },
+    [items, persistir],
+  );
+
+  return { items, cargado, crear, actualizar, eliminar, restaurar, mover, intercambiar };
 }
