@@ -54,7 +54,10 @@ function aValores(contacto: Contacto): Valores {
 }
 
 function TelefonosPage() {
-  const { items, crear, actualizar, eliminar } = useColeccion<Contacto>("contactos", contactos);
+  const { items, crear, actualizar, eliminar, mover } = useColeccion<Contacto>(
+    "contactos",
+    contactos,
+  );
   const [editando, setEditando] = useState<Contacto | null>(null);
   const [creando, setCreando] = useState(false);
 
@@ -87,7 +90,7 @@ function TelefonosPage() {
       }
     >
       <section className="grid gap-3 sm:grid-cols-2">
-        {items.map((contacto) => (
+        {items.map((contacto, indice) => (
           <div
             key={contacto.id}
             className={[
@@ -129,6 +132,10 @@ function TelefonosPage() {
             </a>
             <Acciones
               nombre={contacto.nombre}
+              onSubir={() => mover(contacto.id, -1)}
+              onBajar={() => mover(contacto.id, 1)}
+              puedeSubir={indice > 0}
+              puedeBajar={indice < items.length - 1}
               onEditar={() => {
                 setCreando(false);
                 setEditando(contacto);

@@ -81,7 +81,7 @@ function aValores(med: Medicamento): Valores {
 }
 
 function MedicacionPage() {
-  const { items, crear, actualizar, eliminar } = useColeccion<Medicamento>(
+  const { items, crear, actualizar, eliminar, mover } = useColeccion<Medicamento>(
     "medicacion",
     medicacion,
   );
@@ -128,7 +128,7 @@ function MedicacionPage() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        {items.map((med) => (
+        {items.map((med, indice) => (
           <article key={med.id} className="border-border bg-card rounded-2xl border p-5">
             <div className="flex items-start justify-between gap-2">
               <div>
@@ -137,6 +137,10 @@ function MedicacionPage() {
               </div>
               <Acciones
                 nombre={med.nombre}
+                onSubir={() => mover(med.id, -1)}
+                onBajar={() => mover(med.id, 1)}
+                puedeSubir={indice > 0}
+                puedeBajar={indice < items.length - 1}
                 onEditar={() => {
                   setCreando(false);
                   setEditando(med);
