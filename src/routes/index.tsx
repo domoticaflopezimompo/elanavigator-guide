@@ -130,7 +130,10 @@ function Index() {
   const [editando, setEditando] = useState<Tarea | null>(null);
   const [creando, setCreando] = useState(false);
 
-  const { items, crear, actualizar, eliminar } = useColeccion<Tarea>("tareas", tareasIniciales);
+  const { items, crear, actualizar, eliminar, intercambiar } = useColeccion<Tarea>(
+    "tareas",
+    tareasIniciales,
+  );
   const clave = claveFecha(seleccionada);
   const { completadas, alternar } = useCompletadas(clave);
   const delDia = useMemo(() => tareasDelDia(seleccionada, items), [seleccionada, items]);
@@ -220,13 +223,22 @@ function Index() {
                   {franja.etiqueta}
                 </h2>
                 <div className="space-y-3">
-                  {tareasFranja.map((tarea) => (
+                  {tareasFranja.map((tarea, indice) => (
                     <TareaItem
                       key={tarea.id}
                       tarea={tarea}
                       hecha={completadas.includes(tarea.id)}
                       onAbrir={() => setAbierta(tarea)}
                       onAlternar={() => alternar(tarea.id)}
+                      puedeSubir={indice > 0}
+                      puedeBajar={indice < tareasFranja.length - 1}
+                      onSubir={() =>
+                        indice > 0 && intercambiar(tarea.id, tareasFranja[indice - 1].id)
+                      }
+                      onBajar={() =>
+                        indice < tareasFranja.length - 1 &&
+                        intercambiar(tarea.id, tareasFranja[indice + 1].id)
+                      }
                       onEditar={() => {
                         setCreando(false);
                         setEditando(tarea);

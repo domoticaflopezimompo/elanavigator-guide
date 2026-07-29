@@ -10,9 +10,24 @@ interface Props {
   onAlternar: () => void;
   onEditar?: () => void;
   onEliminar?: () => void;
+  onSubir?: () => void;
+  onBajar?: () => void;
+  puedeSubir?: boolean;
+  puedeBajar?: boolean;
 }
 
-export function TareaItem({ tarea, hecha, onAbrir, onAlternar, onEditar, onEliminar }: Props) {
+export function TareaItem({
+  tarea,
+  hecha,
+  onAbrir,
+  onAlternar,
+  onEditar,
+  onEliminar,
+  onSubir,
+  onBajar,
+  puedeSubir,
+  puedeBajar,
+}: Props) {
   const categoria = CATEGORIAS[tarea.categoria];
 
   return (
@@ -71,7 +86,15 @@ export function TareaItem({ tarea, hecha, onAbrir, onAlternar, onEditar, onElimi
 
       {onEditar && onEliminar ? (
         <div className="flex items-center pr-3">
-          <Acciones nombre={tarea.titulo} onEditar={onEditar} onEliminar={onEliminar} />
+          <Acciones
+            nombre={tarea.titulo}
+            onEditar={onEditar}
+            onEliminar={onEliminar}
+            onSubir={onSubir}
+            onBajar={onBajar}
+            puedeSubir={puedeSubir}
+            puedeBajar={puedeBajar}
+          />
         </div>
       ) : null}
     </div>

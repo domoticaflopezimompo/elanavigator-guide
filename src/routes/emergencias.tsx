@@ -33,7 +33,10 @@ const CAMPOS: Campo[] = [
 const VACIO: Valores = { situacion: "", pasos: [] };
 
 function EmergenciasPage() {
-  const { items, crear, actualizar, eliminar } = useColeccion<Protocolo>("protocolos", protocolos);
+  const { items, crear, actualizar, eliminar, mover } = useColeccion<Protocolo>(
+    "protocolos",
+    protocolos,
+  );
   const [editando, setEditando] = useState<Protocolo | null>(null);
   const [creando, setCreando] = useState(false);
 
@@ -83,12 +86,16 @@ function EmergenciasPage() {
           Qué hacer si…
         </h2>
         <div className="grid gap-4 sm:grid-cols-2">
-          {items.map((protocolo) => (
+          {items.map((protocolo, indice) => (
             <article key={protocolo.id} className="border-border bg-card rounded-2xl border p-5">
               <div className="flex items-start justify-between gap-2">
                 <h3 className="text-lg font-semibold">{protocolo.situacion}</h3>
                 <Acciones
                   nombre={protocolo.situacion}
+                  onSubir={() => mover(protocolo.id, -1)}
+                  onBajar={() => mover(protocolo.id, 1)}
+                  puedeSubir={indice > 0}
+                  puedeBajar={indice < items.length - 1}
                   onEditar={() => {
                     setCreando(false);
                     setEditando(protocolo);

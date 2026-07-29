@@ -63,7 +63,7 @@ interface Props {
 }
 
 export function SeccionFichas({ titulo, descripcion, clave, iniciales, children }: Props) {
-  const { items, crear, actualizar, eliminar } = useColeccion<Ficha>(clave, iniciales);
+  const { items, crear, actualizar, eliminar, mover } = useColeccion<Ficha>(clave, iniciales);
   const [editando, setEditando] = useState<Ficha | null>(null);
   const [creando, setCreando] = useState(false);
 
@@ -100,10 +100,14 @@ export function SeccionFichas({ titulo, descripcion, clave, iniciales, children 
       {children}
 
       <div className="grid gap-4 sm:grid-cols-2">
-        {items.map((ficha) => (
+        {items.map((ficha, indice) => (
           <FichaCard
             key={ficha.id}
             ficha={ficha}
+            onSubir={() => mover(ficha.id, -1)}
+            onBajar={() => mover(ficha.id, 1)}
+            puedeSubir={indice > 0}
+            puedeBajar={indice < items.length - 1}
             onEditar={() => {
               setCreando(false);
               setEditando(ficha);

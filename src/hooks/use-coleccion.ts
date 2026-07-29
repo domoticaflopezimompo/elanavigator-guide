@@ -88,5 +88,32 @@ export function useColeccion<T extends { id: string }>(clave: string, iniciales:
 
   const restaurar = useCallback(() => persistir(inicialesRef.current), [persistir]);
 
-  return { items, cargado, crear, actualizar, eliminar, restaurar };
+  /** Mueve un elemento una posición arriba (-1) o abajo (+1). */
+  const mover = useCallback(
+    (id: string, direccion: -1 | 1) => {
+      const indice = items.findIndex((actual) => actual.id === id);
+      const destino = indice + direccion;
+      if (indice === -1 || destino < 0 || destino >= items.length) return;
+      const siguientes = [...items];
+      const [movido] = siguientes.splice(indice, 1);
+      siguientes.splice(destino, 0, movido);
+      persistir(siguientes);
+    },
+    [items, persistir],
+  );
+
+  /** Intercambia la posición de dos elementos. */
+  const intercambiar = useCallback(
+    (idA: string, idB: string) => {
+      const a = items.findIndex((actual) => actual.id === idA);
+      const b = items.findIndex((actual) => actual.id === idB);
+      if (a === -1 || b === -1) return;
+      const siguientes = [...items];
+      [siguientes[a], siguientes[b]] = [siguientes[b], siguientes[a]];
+      persistir(siguientes);
+    },
+    [items, persistir],
+  );
+
+  return { items, cargado, crear, actualizar, eliminar, restaurar, mover, intercambiar };
 }
