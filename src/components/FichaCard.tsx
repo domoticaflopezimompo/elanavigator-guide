@@ -9,10 +9,18 @@ export function FichaCard({
   ficha,
   onEditar,
   onEliminar,
+  onSubir,
+  onBajar,
+  puedeSubir,
+  puedeBajar,
 }: {
   ficha: Ficha;
   onEditar?: () => void;
   onEliminar?: () => void;
+  onSubir?: () => void;
+  onBajar?: () => void;
+  puedeSubir?: boolean;
+  puedeBajar?: boolean;
 }) {
   const [abierto, setAbierto] = useState(false);
 
@@ -21,7 +29,15 @@ export function FichaCard({
       <div className="group border-border bg-card hover:border-primary/40 relative flex w-full flex-col rounded-2xl border transition hover:shadow-md">
         {onEditar && onEliminar ? (
           <div className="absolute top-3 right-3 z-10">
-            <Acciones nombre={ficha.titulo} onEditar={onEditar} onEliminar={onEliminar} />
+            <Acciones
+              nombre={ficha.titulo}
+              onEditar={onEditar}
+              onEliminar={onEliminar}
+              onSubir={onSubir}
+              onBajar={onBajar}
+              puedeSubir={puedeSubir}
+              puedeBajar={puedeBajar}
+            />
           </div>
         ) : null}
         <button
@@ -30,7 +46,7 @@ export function FichaCard({
           className="focus-visible:ring-ring flex w-full flex-col gap-3 p-5 text-left focus-visible:ring-2 focus-visible:outline-none"
         >
           <div className="flex items-start justify-between gap-3">
-            <h3 className="text-card-foreground pr-20 text-lg font-semibold">{ficha.titulo}</h3>
+            <h3 className="text-card-foreground pr-36 text-lg font-semibold">{ficha.titulo}</h3>
             {ficha.videoYoutube ? (
               <PlayCircle className="text-primary h-6 w-6 shrink-0" aria-label="Incluye vídeo" />
             ) : null}
