@@ -1,5 +1,9 @@
 name: Deploy ELA Navigator
 
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
 on:
   push:
     branches:
@@ -10,10 +14,5 @@ jobs:
     runs-on: self-hosted
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Deploy
-        run: |
-          cd /home/adminpaco/elanavigator-guide
-          ./deploy.sh
+      - name: Ejecutar despliegue
+        run: /home/adminpaco/elanavigator-guide/deploy.sh
