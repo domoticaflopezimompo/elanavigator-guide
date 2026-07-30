@@ -4,6 +4,7 @@ import type { Ficha } from "./tipos";
 export const ejercicios: Ficha[] = [
   {
     id: "movilidad-superior",
+    tipo: "muscular",
     titulo: "Movilidad pasiva de miembro superior",
     resumen: "Recorrido articular de dedos, muñeca, codo y hombro para evitar rigidez.",
     frecuencia: "Todos los días, por la mañana",
@@ -22,6 +23,7 @@ export const ejercicios: Ficha[] = [
   },
   {
     id: "movilidad-inferior",
+    tipo: "muscular",
     titulo: "Movilidad pasiva de miembro inferior",
     resumen: "Cadera, rodilla y tobillo para prevenir contracturas y trombosis.",
     frecuencia: "Todos los días",
@@ -38,6 +40,7 @@ export const ejercicios: Ficha[] = [
   },
   {
     id: "respiratorio",
+    tipo: "respiratorio",
     titulo: "Ejercicio respiratorio y air stacking",
     resumen: "Mantiene la expansión pulmonar y facilita una tos eficaz.",
     frecuencia: "1-2 veces al día",
@@ -53,6 +56,7 @@ export const ejercicios: Ficha[] = [
   },
   {
     id: "transferencias",
+    tipo: "muscular",
     titulo: "Transferencia cama - silla con grúa",
     resumen: "Técnica segura para el paciente y para la espalda del cuidador.",
     frecuencia: "Cada vez que se levanta",
@@ -69,6 +73,7 @@ export const ejercicios: Ficha[] = [
   },
   {
     id: "estiramientos",
+    tipo: "muscular",
     titulo: "Estiramientos de cuello y espalda",
     resumen: "Alivia la tensión cervical por la debilidad de la musculatura del cuello.",
     frecuencia: "Tarde, días alternos",
