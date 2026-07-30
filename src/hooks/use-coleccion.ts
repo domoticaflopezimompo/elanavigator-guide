@@ -15,11 +15,13 @@ export function useColeccion<T extends { id: string }>(clave: string, iniciales:
     let activo = true;
 
     const cargar = async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("colecciones")
         .select("datos")
         .eq("clave", clave)
         .maybeSingle();
+
+      if (error) console.error(`[colecciones:${clave}] error al leer:`, error);
 
       if (!activo) return;
 
@@ -27,9 +29,11 @@ export function useColeccion<T extends { id: string }>(clave: string, iniciales:
         setItems((data.datos as unknown as T[]) ?? []);
       } else {
         // Primera vez: sembramos el contenido inicial en la nube.
-        await supabase
+        const { error: errorSemilla } = await supabase
           .from("colecciones")
           .upsert({ clave, datos: inicialesRef.current as never }, { onConflict: "clave" });
+        if (errorSemilla)
+          console.error(`[colecciones:${clave}] error al sembrar:`, errorSemilla);
         if (activo) setItems(inicialesRef.current);
       }
       if (activo) setCargado(true);
@@ -56,14 +60,24 @@ export function useColeccion<T extends { id: string }>(clave: string, iniciales:
   }, [clave]);
 
   const persistir = useCallback(
-    (siguientes: T[]) => {
+    async (siguientes: T[]) => {
       setItems(siguientes);
-      void supabase
+      const { data, error } = await supabase
         .from("colecciones")
         .upsert(
           { clave, datos: siguientes as never, updated_at: new Date().toISOString() },
           { onConflict: "clave" },
-        );
+        )
+        .select()
+        .maybeSingle();
+
+      if (error) {
+        console.error(`[colecciones:${clave}] error al guardar:`, error);
+        return;
+      }
+      if (!data) {
+        console.error(`[colecciones:${clave}] el guardado no devolvió ninguna fila.`);
+      }
     },
     [clave],
   );
@@ -71,22 +85,22 @@ export function useColeccion<T extends { id: string }>(clave: string, iniciales:
   const crear = useCallback(
     (item: Omit<T, "id"> & { id?: string }) => {
       const nuevo = { ...item, id: item.id || `${clave}-${Date.now()}` } as T;
-      persistir([...items, nuevo]);
+      void persistir([...items, nuevo]);
     },
     [clave, items, persistir],
   );
 
   const actualizar = useCallback(
-    (item: T) => persistir(items.map((actual) => (actual.id === item.id ? item : actual))),
+    (item: T) => void persistir(items.map((actual) => (actual.id === item.id ? item : actual))),
     [items, persistir],
   );
 
   const eliminar = useCallback(
-    (id: string) => persistir(items.filter((actual) => actual.id !== id)),
+    (id: string) => void persistir(items.filter((actual) => actual.id !== id)),
     [items, persistir],
   );
 
-  const restaurar = useCallback(() => persistir(inicialesRef.current), [persistir]);
+  const restaurar = useCallback(() => void persistir(inicialesRef.current), [persistir]);
 
   /** Mueve un elemento una posición arriba (-1) o abajo (+1). */
   const mover = useCallback(
@@ -97,7 +111,7 @@ export function useColeccion<T extends { id: string }>(clave: string, iniciales:
       const siguientes = [...items];
       const [movido] = siguientes.splice(indice, 1);
       siguientes.splice(destino, 0, movido);
-      persistir(siguientes);
+      void persistir(siguientes);
     },
     [items, persistir],
   );
@@ -110,7 +124,7 @@ export function useColeccion<T extends { id: string }>(clave: string, iniciales:
       if (a === -1 || b === -1) return;
       const siguientes = [...items];
       [siguientes[a], siguientes[b]] = [siguientes[b], siguientes[a]];
-      persistir(siguientes);
+      void persistir(siguientes);
     },
     [items, persistir],
   );
