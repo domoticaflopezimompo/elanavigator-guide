@@ -57,6 +57,15 @@ export interface Ficha {
   pasos: string[];
   precauciones?: string[];
   videoYoutube?: string;
+  /** Tipo de ficha, usado para agrupar (por ejemplo en Ejercicios). */
+  tipo?: string;
+}
+
+export interface Info {
+  id: string;
+  titulo: string;
+  detalle: string;
+  notas?: string[];
 }
 
 export interface Contacto {

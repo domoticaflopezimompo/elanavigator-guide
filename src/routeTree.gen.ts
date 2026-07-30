@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as TelefonosRouteImport } from './routes/telefonos'
 import { Route as MedicacionRouteImport } from './routes/medicacion'
 import { Route as LogopediaRouteImport } from './routes/logopedia'
+import { Route as InformacionRouteImport } from './routes/informacion'
 import { Route as EmergenciasRouteImport } from './routes/emergencias'
 import { Route as EjerciciosRouteImport } from './routes/ejercicios'
 import { Route as CuidadosRouteImport } from './routes/cuidados'
@@ -30,6 +31,11 @@ const MedicacionRoute = MedicacionRouteImport.update({
 const LogopediaRoute = LogopediaRouteImport.update({
   id: '/logopedia',
   path: '/logopedia',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InformacionRoute = InformacionRouteImport.update({
+  id: '/informacion',
+  path: '/informacion',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EmergenciasRoute = EmergenciasRouteImport.update({
@@ -58,6 +64,7 @@ export interface FileRoutesByFullPath {
   '/cuidados': typeof CuidadosRoute
   '/ejercicios': typeof EjerciciosRoute
   '/emergencias': typeof EmergenciasRoute
+  '/informacion': typeof InformacionRoute
   '/logopedia': typeof LogopediaRoute
   '/medicacion': typeof MedicacionRoute
   '/telefonos': typeof TelefonosRoute
@@ -67,6 +74,7 @@ export interface FileRoutesByTo {
   '/cuidados': typeof CuidadosRoute
   '/ejercicios': typeof EjerciciosRoute
   '/emergencias': typeof EmergenciasRoute
+  '/informacion': typeof InformacionRoute
   '/logopedia': typeof LogopediaRoute
   '/medicacion': typeof MedicacionRoute
   '/telefonos': typeof TelefonosRoute
@@ -77,6 +85,7 @@ export interface FileRoutesById {
   '/cuidados': typeof CuidadosRoute
   '/ejercicios': typeof EjerciciosRoute
   '/emergencias': typeof EmergenciasRoute
+  '/informacion': typeof InformacionRoute
   '/logopedia': typeof LogopediaRoute
   '/medicacion': typeof MedicacionRoute
   '/telefonos': typeof TelefonosRoute
@@ -88,6 +97,7 @@ export interface FileRouteTypes {
     | '/cuidados'
     | '/ejercicios'
     | '/emergencias'
+    | '/informacion'
     | '/logopedia'
     | '/medicacion'
     | '/telefonos'
@@ -97,6 +107,7 @@ export interface FileRouteTypes {
     | '/cuidados'
     | '/ejercicios'
     | '/emergencias'
+    | '/informacion'
     | '/logopedia'
     | '/medicacion'
     | '/telefonos'
@@ -106,6 +117,7 @@ export interface FileRouteTypes {
     | '/cuidados'
     | '/ejercicios'
     | '/emergencias'
+    | '/informacion'
     | '/logopedia'
     | '/medicacion'
     | '/telefonos'
@@ -116,6 +128,7 @@ export interface RootRouteChildren {
   CuidadosRoute: typeof CuidadosRoute
   EjerciciosRoute: typeof EjerciciosRoute
   EmergenciasRoute: typeof EmergenciasRoute
+  InformacionRoute: typeof InformacionRoute
   LogopediaRoute: typeof LogopediaRoute
   MedicacionRoute: typeof MedicacionRoute
   TelefonosRoute: typeof TelefonosRoute
@@ -142,6 +155,13 @@ declare module '@tanstack/react-router' {
       path: '/logopedia'
       fullPath: '/logopedia'
       preLoaderRoute: typeof LogopediaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/informacion': {
+      id: '/informacion'
+      path: '/informacion'
+      fullPath: '/informacion'
+      preLoaderRoute: typeof InformacionRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/emergencias': {
@@ -180,6 +200,7 @@ const rootRouteChildren: RootRouteChildren = {
   CuidadosRoute: CuidadosRoute,
   EjerciciosRoute: EjerciciosRoute,
   EmergenciasRoute: EmergenciasRoute,
+  InformacionRoute: InformacionRoute,
   LogopediaRoute: LogopediaRoute,
   MedicacionRoute: MedicacionRoute,
   TelefonosRoute: TelefonosRoute,
@@ -187,13 +208,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
