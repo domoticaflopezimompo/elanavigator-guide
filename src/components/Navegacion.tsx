@@ -7,6 +7,7 @@ import {
   MessageCircle,
   Phone,
   ShieldAlert,
+  Home,
 } from "lucide-react";
 
 const ENLACES = [
@@ -17,6 +18,7 @@ const ENLACES = [
   { to: "/logopedia", etiqueta: "Logopedia", Icono: MessageCircle },
   { to: "/emergencias", etiqueta: "Emergencias", Icono: ShieldAlert },
   { to: "/telefonos", etiqueta: "Teléfonos", Icono: Phone },
+  { to: "/informacion", etiqueta: "Información", Icono: Home },
 ] as const;
 
 export function CabeceraEscritorio() {
@@ -57,7 +59,7 @@ export function CabeceraEscritorio() {
 export function BarraMovil() {
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
-      <div className="grid grid-cols-7">
+      <div className="grid grid-cols-8">
         {ENLACES.map(({ to, etiqueta, Icono }) => (
           <Link
             key={to}
