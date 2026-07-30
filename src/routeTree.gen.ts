@@ -9,37 +9,17 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as CuidadosRouteImport } from './routes/cuidados'
-import { Route as EjerciciosRouteImport } from './routes/ejercicios'
-import { Route as EmergenciasRouteImport } from './routes/emergencias'
-import { Route as LogopediaRouteImport } from './routes/logopedia'
-import { Route as MedicacionRouteImport } from './routes/medicacion'
 import { Route as TelefonosRouteImport } from './routes/telefonos'
+import { Route as MedicacionRouteImport } from './routes/medicacion'
+import { Route as LogopediaRouteImport } from './routes/logopedia'
+import { Route as EmergenciasRouteImport } from './routes/emergencias'
+import { Route as EjerciciosRouteImport } from './routes/ejercicios'
+import { Route as CuidadosRouteImport } from './routes/cuidados'
+import { Route as IndexRouteImport } from './routes/index'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CuidadosRoute = CuidadosRouteImport.update({
-  id: '/cuidados',
-  path: '/cuidados',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const EjerciciosRoute = EjerciciosRouteImport.update({
-  id: '/ejercicios',
-  path: '/ejercicios',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const EmergenciasRoute = EmergenciasRouteImport.update({
-  id: '/emergencias',
-  path: '/emergencias',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LogopediaRoute = LogopediaRouteImport.update({
-  id: '/logopedia',
-  path: '/logopedia',
+const TelefonosRoute = TelefonosRouteImport.update({
+  id: '/telefonos',
+  path: '/telefonos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MedicacionRoute = MedicacionRouteImport.update({
@@ -47,9 +27,29 @@ const MedicacionRoute = MedicacionRouteImport.update({
   path: '/medicacion',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TelefonosRoute = TelefonosRouteImport.update({
-  id: '/telefonos',
-  path: '/telefonos',
+const LogopediaRoute = LogopediaRouteImport.update({
+  id: '/logopedia',
+  path: '/logopedia',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EmergenciasRoute = EmergenciasRouteImport.update({
+  id: '/emergencias',
+  path: '/emergencias',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EjerciciosRoute = EjerciciosRouteImport.update({
+  id: '/ejercicios',
+  path: '/ejercicios',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CuidadosRoute = CuidadosRouteImport.update({
+  id: '/cuidados',
+  path: '/cuidados',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -123,39 +123,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/cuidados': {
-      id: '/cuidados'
-      path: '/cuidados'
-      fullPath: '/cuidados'
-      preLoaderRoute: typeof CuidadosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/ejercicios': {
-      id: '/ejercicios'
-      path: '/ejercicios'
-      fullPath: '/ejercicios'
-      preLoaderRoute: typeof EjerciciosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/emergencias': {
-      id: '/emergencias'
-      path: '/emergencias'
-      fullPath: '/emergencias'
-      preLoaderRoute: typeof EmergenciasRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/logopedia': {
-      id: '/logopedia'
-      path: '/logopedia'
-      fullPath: '/logopedia'
-      preLoaderRoute: typeof LogopediaRouteImport
+    '/telefonos': {
+      id: '/telefonos'
+      path: '/telefonos'
+      fullPath: '/telefonos'
+      preLoaderRoute: typeof TelefonosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/medicacion': {
@@ -165,11 +137,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MedicacionRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/telefonos': {
-      id: '/telefonos'
-      path: '/telefonos'
-      fullPath: '/telefonos'
-      preLoaderRoute: typeof TelefonosRouteImport
+    '/logopedia': {
+      id: '/logopedia'
+      path: '/logopedia'
+      fullPath: '/logopedia'
+      preLoaderRoute: typeof LogopediaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/emergencias': {
+      id: '/emergencias'
+      path: '/emergencias'
+      fullPath: '/emergencias'
+      preLoaderRoute: typeof EmergenciasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ejercicios': {
+      id: '/ejercicios'
+      path: '/ejercicios'
+      fullPath: '/ejercicios'
+      preLoaderRoute: typeof EjerciciosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cuidados': {
+      id: '/cuidados'
+      path: '/cuidados'
+      fullPath: '/cuidados'
+      preLoaderRoute: typeof CuidadosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
