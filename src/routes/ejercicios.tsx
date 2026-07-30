@@ -25,6 +25,18 @@ function EjerciciosPage() {
       descripcion="Movilidad, respiración y transferencias. Pulsa una ficha para ver los pasos y el vídeo."
       clave="ejercicios"
       iniciales={ejercicios}
+      grupos={[
+        {
+          valor: "muscular",
+          etiqueta: "Ejercicio muscular",
+          descripcion: "Movilidad articular, estiramientos y transferencias seguras.",
+        },
+        {
+          valor: "respiratorio",
+          etiqueta: "Ejercicio respiratorio",
+          descripcion: "Expansión pulmonar, tos asistida y manejo de secreciones.",
+        },
+      ]}
     />
   );
 }

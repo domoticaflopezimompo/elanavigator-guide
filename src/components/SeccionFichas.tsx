@@ -8,7 +8,7 @@ import { useColeccion } from "@/hooks/use-coleccion";
 import type { Ficha } from "@/data/tipos";
 import type { ReactNode } from "react";
 
-const CAMPOS: Campo[] = [
+const CAMPOS_BASE: Campo[] = [
   { nombre: "titulo", etiqueta: "Título", tipo: "texto" },
   { nombre: "resumen", etiqueta: "Resumen", tipo: "area" },
   { nombre: "frecuencia", etiqueta: "Frecuencia", tipo: "texto", marcador: "Todos los días" },
@@ -47,6 +47,7 @@ function aValores(ficha: Ficha): Valores {
     pasos: ficha.pasos,
     precauciones: ficha.precauciones ?? [],
     videoYoutube: ficha.videoYoutube ?? "",
+    tipo: ficha.tipo ?? "",
   };
 }
 
@@ -59,13 +60,40 @@ interface Props {
   descripcion: string;
   clave: string;
   iniciales: Ficha[];
+  /** Si se indica, las fichas se agrupan por su campo `tipo` con una cabecera. */
+  grupos?: { valor: string; etiqueta: string; descripcion?: string }[];
   children?: ReactNode;
 }
 
-export function SeccionFichas({ titulo, descripcion, clave, iniciales, children }: Props) {
-  const { items, crear, actualizar, eliminar, mover } = useColeccion<Ficha>(clave, iniciales);
+export function SeccionFichas({
+  titulo,
+  descripcion,
+  clave,
+  iniciales,
+  grupos,
+  children,
+}: Props) {
+  const { items, crear, actualizar, eliminar, mover, intercambiar } = useColeccion<Ficha>(
+    clave,
+    iniciales,
+  );
   const [editando, setEditando] = useState<Ficha | null>(null);
   const [creando, setCreando] = useState(false);
+
+  const campos: Campo[] = grupos
+    ? [
+        CAMPOS_BASE[0],
+        {
+          nombre: "tipo",
+          etiqueta: "Tipo",
+          tipo: "select",
+          opciones: grupos.map((grupo) => ({ valor: grupo.valor, etiqueta: grupo.etiqueta })),
+        },
+        ...CAMPOS_BASE.slice(1),
+      ]
+    : CAMPOS_BASE;
+
+  const vacia: Valores = grupos ? { ...VACIA, tipo: grupos[0].valor } : VACIA;
 
   const guardar = (valores: Valores) => {
     const base = {
@@ -76,10 +104,31 @@ export function SeccionFichas({ titulo, descripcion, clave, iniciales, children 
       pasos: limpiar(valores.pasos as string[]),
       precauciones: limpiar(valores.precauciones as string[]),
       videoYoutube: (valores.videoYoutube as string).trim() || undefined,
+      tipo: grupos ? ((valores.tipo as string) || grupos[0].valor) : undefined,
     };
     if (editando) actualizar({ ...editando, ...base });
     else crear(base);
   };
+
+  const tarjeta = (ficha: Ficha, lista: Ficha[], indice: number) => (
+    <FichaCard
+      key={ficha.id}
+      ficha={ficha}
+      onSubir={() =>
+        grupos ? intercambiar(ficha.id, lista[indice - 1].id) : mover(ficha.id, -1)
+      }
+      onBajar={() =>
+        grupos ? intercambiar(ficha.id, lista[indice + 1].id) : mover(ficha.id, 1)
+      }
+      puedeSubir={indice > 0}
+      puedeBajar={indice < lista.length - 1}
+      onEditar={() => {
+        setCreando(false);
+        setEditando(ficha);
+      }}
+      onEliminar={() => eliminar(ficha.id)}
+    />
+  );
 
   return (
     <Pagina
@@ -99,23 +148,35 @@ export function SeccionFichas({ titulo, descripcion, clave, iniciales, children 
     >
       {children}
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        {items.map((ficha, indice) => (
-          <FichaCard
-            key={ficha.id}
-            ficha={ficha}
-            onSubir={() => mover(ficha.id, -1)}
-            onBajar={() => mover(ficha.id, 1)}
-            puedeSubir={indice > 0}
-            puedeBajar={indice < items.length - 1}
-            onEditar={() => {
-              setCreando(false);
-              setEditando(ficha);
-            }}
-            onEliminar={() => eliminar(ficha.id)}
-          />
-        ))}
-      </div>
+      {grupos ? (
+        <div className="space-y-8">
+          {grupos.map((grupo, posicion) => {
+            const lista = items.filter((ficha) =>
+              posicion === 0
+                ? !ficha.tipo || ficha.tipo === grupo.valor
+                : ficha.tipo === grupo.valor,
+            );
+            if (lista.length === 0) return null;
+            return (
+              <section key={grupo.valor}>
+                <div className="border-primary/30 mb-4 border-l-4 pl-3">
+                  <h2 className="text-xl font-semibold tracking-tight">{grupo.etiqueta}</h2>
+                  {grupo.descripcion ? (
+                    <p className="text-muted-foreground text-sm">{grupo.descripcion}</p>
+                  ) : null}
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {lista.map((ficha, indice) => tarjeta(ficha, lista, indice))}
+                </div>
+              </section>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2">
+          {items.map((ficha, indice) => tarjeta(ficha, items, indice))}
+        </div>
+      )}
 
       {items.length === 0 ? (
         <p className="border-border text-muted-foreground rounded-2xl border border-dashed p-8 text-center">
@@ -132,8 +193,8 @@ export function SeccionFichas({ titulo, descripcion, clave, iniciales, children 
           }
         }}
         titulo={editando ? "Editar ficha" : "Nueva ficha"}
-        campos={CAMPOS}
-        valores={editando ? aValores(editando) : VACIA}
+        campos={campos}
+        valores={editando ? aValores(editando) : vacia}
         onGuardar={guardar}
       />
     </Pagina>
