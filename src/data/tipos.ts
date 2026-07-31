@@ -34,6 +34,8 @@ export interface Tarea {
   videoYoutube?: string;
   duracion?: string;
   recurrencia: Recurrencia;
+  /** Ficha de la sección general de la que procede esta tarea. */
+  origen?: { seccion: string; fichaId: string };
 }
 
 export interface Medicamento {
