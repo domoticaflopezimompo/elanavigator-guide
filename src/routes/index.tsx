@@ -12,6 +12,12 @@ import { useCompletadas } from "@/hooks/use-completadas";
 import { useColeccion } from "@/hooks/use-coleccion";
 import { tareas as tareasIniciales } from "@/data/tareas";
 import {
+  INICIALES,
+  SECCIONES,
+  normalizar,
+  type FichaSeccion,
+} from "@/lib/secciones";
+import {
   CATEGORIAS,
   FRANJAS,
   claveFecha,
@@ -19,7 +25,7 @@ import {
   formatoLargo,
   tareasDelDia,
 } from "@/lib/agenda";
-import type { Categoria, Franja, Tarea } from "@/data/tipos";
+import type { Franja, Tarea } from "@/data/tipos";
 
 const TITULO = "Tareas del día — Cuidados ELA";
 const DESCRIPCION =
@@ -37,84 +43,93 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-const CAMPOS: Campo[] = [
-  { nombre: "titulo", etiqueta: "Título", tipo: "texto" },
-  { nombre: "resumen", etiqueta: "Resumen", tipo: "area" },
-  {
-    nombre: "categoria",
-    etiqueta: "Categoría",
-    tipo: "select",
-    opciones: (Object.keys(CATEGORIAS) as Categoria[]).map((clave) => ({
-      valor: clave,
-      etiqueta: CATEGORIAS[clave].etiqueta,
-    })),
-  },
-  {
-    nombre: "franja",
-    etiqueta: "Franja del día",
-    tipo: "select",
-    opciones: FRANJAS.map((franja) => ({ valor: franja.id, etiqueta: franja.etiqueta })),
-  },
-  { nombre: "hora", etiqueta: "Hora", tipo: "texto", marcador: "08:00" },
-  { nombre: "duracion", etiqueta: "Duración", tipo: "texto", marcador: "15 min" },
-  {
-    nombre: "recurrenciaTipo",
-    etiqueta: "Se repite",
-    tipo: "select",
-    opciones: [
-      { valor: "diaria", etiqueta: "Todos los días" },
-      { valor: "semanal", etiqueta: "Días concretos de la semana" },
-      { valor: "fecha", etiqueta: "Fechas sueltas" },
-    ],
-  },
-  { nombre: "recurrenciaDias", etiqueta: "Días de la semana", tipo: "dias" },
-  {
-    nombre: "recurrenciaFechas",
-    etiqueta: "Fechas",
-    tipo: "lista",
-    ayuda: "Una fecha por línea en formato AAAA-MM-DD.",
-  },
-  { nombre: "pasos", etiqueta: "Pasos", tipo: "lista", ayuda: "Un paso por línea." },
-  { nombre: "avisos", etiqueta: "Avisos importantes", tipo: "lista" },
-  {
-    nombre: "videoYoutube",
-    etiqueta: "ID del vídeo de YouTube",
-    tipo: "texto",
-    ayuda: "Solo el ID, por ejemplo dQw4w9WgXcQ.",
-  },
-];
+function campos(fichas: Record<string, FichaSeccion[]>, legado: boolean) {
+  return (estado: Valores): Campo[] => {
+    const seccion = (estado.seccion as string) ?? SECCIONES[0].clave;
+    const opcionesSeccion = [
+      ...(legado ? [{ valor: "manual", etiqueta: "Contenido actual (sin ficha)" }] : []),
+      ...SECCIONES.map((item) => ({ valor: item.clave, etiqueta: item.etiqueta })),
+    ];
+    const lista: Campo[] = [
+      {
+        nombre: "seccion",
+        etiqueta: "Sección",
+        tipo: "select",
+        opciones: opcionesSeccion,
+      },
+    ];
+    if (seccion !== "manual") {
+      lista.push({
+        nombre: "fichaId",
+        etiqueta: "Ficha",
+        tipo: "select",
+        opciones: (fichas[seccion] ?? []).map((ficha) => ({
+          valor: ficha.id,
+          etiqueta: ficha.titulo,
+        })),
+        ayuda: "Solo se pueden programar fichas que ya existen en esa sección.",
+      });
+    }
+    return [
+      ...lista,
+      {
+        nombre: "franja",
+        etiqueta: "Franja del día",
+        tipo: "select",
+        opciones: FRANJAS.map((franja) => ({ valor: franja.id, etiqueta: franja.etiqueta })),
+      },
+      { nombre: "hora", etiqueta: "Hora", tipo: "texto", marcador: "08:00" },
+      { nombre: "duracion", etiqueta: "Duración", tipo: "texto", marcador: "15 min" },
+      {
+        nombre: "recurrenciaTipo",
+        etiqueta: "Se repite",
+        tipo: "select",
+        opciones: [
+          { valor: "diaria", etiqueta: "Todos los días" },
+          { valor: "semanal", etiqueta: "Días concretos de la semana" },
+          { valor: "fecha", etiqueta: "Fechas sueltas" },
+        ],
+      },
+      ...((estado.recurrenciaTipo as string) === "semanal"
+        ? ([{ nombre: "recurrenciaDias", etiqueta: "Días de la semana", tipo: "dias" }] as Campo[])
+        : []),
+      ...((estado.recurrenciaTipo as string) === "fecha"
+        ? ([
+            {
+              nombre: "recurrenciaFechas",
+              etiqueta: "Fechas",
+              tipo: "lista",
+              ayuda: "Una fecha por línea en formato AAAA-MM-DD.",
+            },
+          ] as Campo[])
+        : []),
+    ];
+  };
+}
 
-function valoresVacios(fecha: Date): Valores {
+function valoresVacios(fecha: Date, primeraFicha?: string): Valores {
   return {
-    titulo: "",
-    resumen: "",
-    categoria: "higiene",
+    seccion: SECCIONES[0].clave,
+    fichaId: primeraFicha ?? "",
     franja: "manana",
     hora: "",
     duracion: "",
     recurrenciaTipo: "diaria",
     recurrenciaDias: [],
     recurrenciaFechas: [claveFecha(fecha)],
-    pasos: [],
-    avisos: [],
-    videoYoutube: "",
   };
 }
 
 function aValores(tarea: Tarea): Valores {
   return {
-    titulo: tarea.titulo,
-    resumen: tarea.resumen,
-    categoria: tarea.categoria,
+    seccion: tarea.origen?.seccion ?? "manual",
+    fichaId: tarea.origen?.fichaId ?? "",
     franja: tarea.franja,
     hora: tarea.hora ?? "",
     duracion: tarea.duracion ?? "",
     recurrenciaTipo: tarea.recurrencia.tipo,
     recurrenciaDias: tarea.recurrencia.tipo === "semanal" ? tarea.recurrencia.dias : [],
     recurrenciaFechas: tarea.recurrencia.tipo === "fecha" ? tarea.recurrencia.fechas : [],
-    pasos: tarea.pasos,
-    avisos: tarea.avisos ?? [],
-    videoYoutube: tarea.videoYoutube ?? "",
   };
 }
 
