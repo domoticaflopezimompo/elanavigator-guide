@@ -25,6 +25,23 @@ function LogopediaPage() {
       descripcion="Voz, articulación y alimentación segura. Pulsa una ficha para ver los pasos y el vídeo."
       clave="logopedia"
       iniciales={logopedia}
+      grupos={[
+        {
+          valor: "voz",
+          etiqueta: "Voz",
+          descripcion: "Potencia vocal, respiración y articulación.",
+        },
+        {
+          valor: "disfagia",
+          etiqueta: "Disfagia",
+          descripcion: "Pautas de deglución segura y texturas.",
+        },
+        {
+          valor: "muscular",
+          etiqueta: "Muscular",
+          descripcion: "Praxias y trabajo muscular orofacial.",
+        },
+      ]}
     />
   );
 }
