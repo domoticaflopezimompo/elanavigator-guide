@@ -11,6 +11,13 @@ import type { ReactNode } from "react";
 
 const CAMPOS_BASE: Campo[] = [
   { nombre: "titulo", etiqueta: "Título", tipo: "texto" },
+  {
+    nombre: "icono",
+    etiqueta: "Icono",
+    tipo: "texto",
+    marcador: "💊 o https://…/imagen.png",
+    ayuda: "Pega un emoji o la URL de una imagen. Puede quedar vacío.",
+  },
   { nombre: "resumen", etiqueta: "Resumen", tipo: "area" },
   { nombre: "frecuencia", etiqueta: "Frecuencia", tipo: "texto", marcador: "Todos los días" },
   { nombre: "duracion", etiqueta: "Duración", tipo: "texto", marcador: "10 min" },
@@ -31,6 +38,7 @@ const CAMPOS_BASE: Campo[] = [
 
 const VACIA: Valores = {
   titulo: "",
+  icono: "",
   resumen: "",
   frecuencia: "",
   duracion: "",
@@ -42,6 +50,7 @@ const VACIA: Valores = {
 function aValores(ficha: Ficha): Valores {
   return {
     titulo: ficha.titulo,
+    icono: ficha.icono ?? "",
     resumen: ficha.resumen,
     frecuencia: ficha.frecuencia,
     duracion: ficha.duracion ?? "",
@@ -99,6 +108,7 @@ export function SeccionFichas({
   const guardar = (valores: Valores) => {
     const base = {
       titulo: (valores.titulo as string).trim() || "Sin título",
+      icono: ((valores.icono as string) ?? "").trim() || undefined,
       resumen: valores.resumen as string,
       frecuencia: valores.frecuencia as string,
       duracion: (valores.duracion as string) || undefined,
