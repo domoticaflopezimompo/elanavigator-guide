@@ -53,6 +53,8 @@ export interface Medicamento {
 export interface Ficha {
   id: string;
   titulo: string;
+  /** Emoji, texto corto o URL de imagen que representa la ficha. */
+  icono?: string;
   resumen: string;
   frecuencia: string;
   duracion?: string;
