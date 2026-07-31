@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Pagina } from "@/components/Pagina";
 import { FichaCard } from "@/components/FichaCard";
 import { EditorDialogo, type Campo, type Valores } from "@/components/EditorDialogo";
@@ -149,29 +150,38 @@ export function SeccionFichas({
       {children}
 
       {grupos ? (
-        <div className="space-y-8">
+        <Tabs defaultValue={grupos[0].valor} className="w-full">
+          <TabsList className="mb-4 flex h-auto w-full flex-wrap justify-start gap-1">
+            {grupos.map((grupo) => (
+              <TabsTrigger key={grupo.valor} value={grupo.valor} className="flex-1">
+                {grupo.etiqueta}
+              </TabsTrigger>
+            ))}
+          </TabsList>
           {grupos.map((grupo, posicion) => {
             const lista = items.filter((ficha) =>
               posicion === 0
                 ? !ficha.tipo || ficha.tipo === grupo.valor
                 : ficha.tipo === grupo.valor,
             );
-            if (lista.length === 0) return null;
             return (
-              <section key={grupo.valor}>
-                <div className="border-primary/30 mb-4 border-l-4 pl-3">
-                  <h2 className="text-xl font-semibold tracking-tight">{grupo.etiqueta}</h2>
-                  {grupo.descripcion ? (
-                    <p className="text-muted-foreground text-sm">{grupo.descripcion}</p>
-                  ) : null}
-                </div>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  {lista.map((ficha, indice) => tarjeta(ficha, lista, indice))}
-                </div>
-              </section>
+              <TabsContent key={grupo.valor} value={grupo.valor}>
+                {grupo.descripcion ? (
+                  <p className="text-muted-foreground mb-4 text-sm">{grupo.descripcion}</p>
+                ) : null}
+                {lista.length === 0 ? (
+                  <p className="border-border text-muted-foreground rounded-2xl border border-dashed p-8 text-center">
+                    No hay fichas en esta sección todavía.
+                  </p>
+                ) : (
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    {lista.map((ficha, indice) => tarjeta(ficha, lista, indice))}
+                  </div>
+                )}
+              </TabsContent>
             );
           })}
-        </div>
+        </Tabs>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
           {items.map((ficha, indice) => tarjeta(ficha, items, indice))}
