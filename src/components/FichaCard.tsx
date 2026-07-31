@@ -3,6 +3,7 @@ import { PlayCircle, Clock, Repeat } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { FichaDialogo } from "@/components/FichaDialogo";
 import { Acciones } from "@/components/Acciones";
+import { IconoFicha } from "@/components/IconoFicha";
 import type { Ficha } from "@/data/tipos";
 
 export function FichaCard({
@@ -45,14 +46,18 @@ export function FichaCard({
           onClick={() => setAbierto(true)}
           className="focus-visible:ring-ring flex w-full flex-col gap-3 p-5 text-left focus-visible:ring-2 focus-visible:outline-none"
         >
-          <div className="flex items-start justify-between gap-3">
-            <h3 className="text-card-foreground pr-36 text-lg font-semibold">{ficha.titulo}</h3>
-            {ficha.videoYoutube ? (
-              <PlayCircle className="text-primary h-6 w-6 shrink-0" aria-label="Incluye vídeo" />
-            ) : null}
+          <div className="flex items-start gap-3">
+            <IconoFicha icono={ficha.icono} />
+            <h3 className="text-card-foreground pr-32 text-lg font-semibold">{ficha.titulo}</h3>
           </div>
           <p className="text-muted-foreground text-base">{ficha.resumen}</p>
           <div className="flex flex-wrap gap-2">
+            {ficha.videoYoutube ? (
+              <Badge variant="secondary" className="gap-1 font-normal">
+                <PlayCircle className="h-3.5 w-3.5" />
+                Vídeo
+              </Badge>
+            ) : null}
             <Badge variant="secondary" className="gap-1 font-normal">
               <Repeat className="h-3.5 w-3.5" />
               {ficha.frecuencia}
