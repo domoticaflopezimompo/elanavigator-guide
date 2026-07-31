@@ -149,30 +149,84 @@ function Index() {
     "tareas",
     tareasIniciales,
   );
+  const colMedicacion = useColeccion<{ id: string }>("medicacion", INICIALES.medicacion as { id: string }[]);
+  const colCuidados = useColeccion<{ id: string }>("cuidados", INICIALES.cuidados as { id: string }[]);
+  const colEjercicios = useColeccion<{ id: string }>("ejercicios", INICIALES.ejercicios as { id: string }[]);
+  const colLogopedia = useColeccion<{ id: string }>("logopedia", INICIALES.logopedia as { id: string }[]);
+
+  const fichas: Record<string, FichaSeccion[]> = useMemo(
+    () => ({
+      medicacion: normalizar("medicacion", colMedicacion.items),
+      cuidados: normalizar("cuidados", colCuidados.items),
+      ejercicios: normalizar("ejercicios", colEjercicios.items),
+      logopedia: normalizar("logopedia", colLogopedia.items),
+    }),
+    [colMedicacion.items, colCuidados.items, colEjercicios.items, colLogopedia.items],
+  );
+
+  /** Mantiene la tarea sincronizada con la ficha de su sección. */
+  const sincronizar = (tarea: Tarea): Tarea => {
+    if (!tarea.origen) return tarea;
+    const ficha = fichas[tarea.origen.seccion]?.find((item) => item.id === tarea.origen!.fichaId);
+    if (!ficha) return tarea;
+    return {
+      ...tarea,
+      titulo: ficha.titulo,
+      resumen: ficha.resumen,
+      categoria: ficha.categoria,
+      pasos: ficha.pasos,
+      avisos: ficha.avisos,
+      videoYoutube: ficha.videoYoutube,
+      duracion: tarea.duracion ?? ficha.duracion,
+    };
+  };
+
   const clave = claveFecha(seleccionada);
   const { completadas, alternar } = useCompletadas(clave);
-  const delDia = useMemo(() => tareasDelDia(seleccionada, items), [seleccionada, items]);
+  const delDia = useMemo(
+    () => tareasDelDia(seleccionada, items).map(sincronizar),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [seleccionada, items, fichas],
+  );
   const hechas = delDia.filter((tarea) => completadas.includes(tarea.id)).length;
 
   const guardar = (valores: Valores) => {
     const tipo = valores.recurrenciaTipo as "diaria" | "semanal" | "fecha";
-    const base = {
-      titulo: (valores.titulo as string).trim() || "Sin título",
-      resumen: valores.resumen as string,
-      categoria: valores.categoria as Categoria,
+    const recurrencia =
+      tipo === "semanal"
+        ? { tipo: "semanal" as const, dias: valores.recurrenciaDias as number[] }
+        : tipo === "fecha"
+          ? { tipo: "fecha" as const, fechas: limpiar(valores.recurrenciaFechas as string[]) }
+          : { tipo: "diaria" as const };
+
+    const comun = {
       franja: valores.franja as Franja,
       hora: (valores.hora as string).trim() || undefined,
       duracion: (valores.duracion as string).trim() || undefined,
-      pasos: limpiar(valores.pasos as string[]),
-      avisos: limpiar(valores.avisos as string[]),
-      videoYoutube: (valores.videoYoutube as string).trim() || undefined,
-      recurrencia:
-        tipo === "semanal"
-          ? { tipo: "semanal" as const, dias: valores.recurrenciaDias as number[] }
-          : tipo === "fecha"
-            ? { tipo: "fecha" as const, fechas: limpiar(valores.recurrenciaFechas as string[]) }
-            : { tipo: "diaria" as const },
+      recurrencia,
     };
+
+    const seccion = valores.seccion as string;
+    if (seccion === "manual" && editando) {
+      actualizar({ ...editando, ...comun });
+      return;
+    }
+
+    const ficha = fichas[seccion]?.find((item) => item.id === (valores.fichaId as string));
+    if (!ficha) return;
+
+    const base = {
+      ...comun,
+      titulo: ficha.titulo,
+      resumen: ficha.resumen,
+      categoria: ficha.categoria,
+      pasos: ficha.pasos,
+      avisos: ficha.avisos,
+      videoYoutube: ficha.videoYoutube,
+      duracion: comun.duracion ?? ficha.duracion,
+      origen: { seccion, fichaId: ficha.id },
+    };
+
     if (editando) actualizar({ ...editando, ...base });
     else crear(base);
   };
@@ -311,9 +365,14 @@ function Index() {
             setEditando(null);
           }
         }}
-        titulo={editando ? "Editar tarea" : "Nueva tarea"}
-        campos={CAMPOS}
-        valores={editando ? aValores(editando) : valoresVacios(seleccionada)}
+        titulo={editando ? "Editar tarea" : "Programar tarea"}
+        descripcion="Elige una ficha ya creada en una sección y programa cuándo hay que hacerla."
+        campos={campos(fichas, editando !== null && !editando.origen)}
+        valores={
+          editando
+            ? aValores(editando)
+            : valoresVacios(seleccionada, fichas[SECCIONES[0].clave]?.[0]?.id)
+        }
         onGuardar={guardar}
       />
 
