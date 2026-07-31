@@ -38,7 +38,8 @@ interface Props {
   onOpenChange: (abierto: boolean) => void;
   titulo: string;
   descripcion?: string;
-  campos: Campo[];
+  /** Lista de campos, o una función que los calcula según los valores actuales. */
+  campos: Campo[] | ((estado: Valores) => Campo[]);
   valores: Valores;
   onGuardar: (valores: Valores) => void;
 }
@@ -62,6 +63,22 @@ export function EditorDialogo({
   const cambiar = (nombre: string, valor: string | string[] | number[]) =>
     setEstado((previo) => ({ ...previo, [nombre]: valor }));
 
+  const listaCampos = typeof campos === "function" ? campos(estado) : campos;
+
+  // Si un desplegable depende de otro y su valor ya no existe, cae a la primera opción.
+  useEffect(() => {
+    if (!abierto) return;
+    const ajustes: Valores = {};
+    for (const campo of listaCampos) {
+      if (campo.tipo !== "select" || !campo.opciones?.length) continue;
+      const actual = estado[campo.nombre] as string | undefined;
+      if (!campo.opciones.some((opcion) => opcion.valor === actual)) {
+        ajustes[campo.nombre] = campo.opciones[0].valor;
+      }
+    }
+    if (Object.keys(ajustes).length > 0) setEstado((previo) => ({ ...previo, ...ajustes }));
+  });
+
   return (
     <Dialog open={abierto} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
@@ -78,7 +95,7 @@ export function EditorDialogo({
             onOpenChange(false);
           }}
         >
-          {campos.map((campo) => {
+          {listaCampos.map((campo) => {
             const id = `campo-${campo.nombre}`;
             const valor = estado[campo.nombre];
 
