@@ -72,6 +72,8 @@ interface Props {
   iniciales: Ficha[];
   /** Si se indica, las fichas se agrupan por su campo `tipo` con una cabecera. */
   grupos?: { valor: string; etiqueta: string; descripcion?: string }[];
+  /** Campos adicionales del formulario, calculados según los valores actuales. */
+  extras?: (estado: Valores) => Campo[];
   children?: ReactNode;
 }
 
@@ -81,6 +83,7 @@ export function SeccionFichas({
   clave,
   iniciales,
   grupos,
+  extras,
   children,
 }: Props) {
   const { items, crear, actualizar, eliminar, mover, intercambiar } = useColeccion<Ficha>(
@@ -90,22 +93,29 @@ export function SeccionFichas({
   const [editando, setEditando] = useState<Ficha | null>(null);
   const [creando, setCreando] = useState(false);
 
-  const campos: Campo[] = grupos
-    ? [
-        CAMPOS_BASE[0],
-        {
-          nombre: "tipo",
-          etiqueta: "Tipo",
-          tipo: "select",
-          opciones: grupos.map((grupo) => ({ valor: grupo.valor, etiqueta: grupo.etiqueta })),
-        },
-        ...CAMPOS_BASE.slice(1),
-      ]
-    : CAMPOS_BASE;
+  const campos = (estado: Valores): Campo[] => {
+    const base: Campo[] = grupos
+      ? [
+          CAMPOS_BASE[0],
+          {
+            nombre: "tipo",
+            etiqueta: "Tipo",
+            tipo: "select",
+            opciones: grupos.map((grupo) => ({ valor: grupo.valor, etiqueta: grupo.etiqueta })),
+          },
+          ...CAMPOS_BASE.slice(1),
+        ]
+      : [...CAMPOS_BASE];
+    return [...base, ...(extras?.(estado) ?? [])];
+  };
 
   const vacia: Valores = grupos ? { ...VACIA, tipo: grupos[0].valor } : VACIA;
 
   const guardar = (valores: Valores) => {
+    const adicionales: Record<string, string | undefined> = {};
+    for (const campo of extras?.(valores) ?? []) {
+      adicionales[campo.nombre] = ((valores[campo.nombre] as string) ?? "").trim() || undefined;
+    }
     const base = {
       titulo: (valores.titulo as string).trim() || "Sin título",
       icono: ((valores.icono as string) ?? "").trim() || undefined,
@@ -116,6 +126,7 @@ export function SeccionFichas({
       precauciones: limpiar(valores.precauciones as string[]),
       videoYoutube: (valores.videoYoutube as string).trim() || undefined,
       tipo: grupos ? ((valores.tipo as string) || grupos[0].valor) : undefined,
+      ...adicionales,
     };
     if (editando) actualizar({ ...editando, ...base });
     else crear(base);
