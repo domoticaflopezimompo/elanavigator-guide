@@ -6,6 +6,7 @@ import { Pagina } from "@/components/Pagina";
 import { Acciones } from "@/components/Acciones";
 import { EditorDialogo, type Campo, type Valores } from "@/components/EditorDialogo";
 import { useColeccion } from "@/hooks/use-coleccion";
+import { CATEGORIAS } from "@/lib/agenda";
 import { medicacion } from "@/data/medicacion";
 import type { Medicamento } from "@/data/tipos";
 
@@ -132,6 +133,11 @@ function MedicacionPage() {
           <article key={med.id} className="border-border bg-card rounded-2xl border p-5">
             <div className="flex items-start justify-between gap-2">
               <div>
+                <span
+                  className={`mb-1.5 inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${CATEGORIAS.medicacion.clase}`}
+                >
+                  {CATEGORIAS.medicacion.etiqueta}
+                </span>
                 <h2 className="text-card-foreground text-lg font-semibold">{med.nombre}</h2>
                 <p className="text-muted-foreground mt-0.5 text-sm">{med.para}</p>
               </div>
