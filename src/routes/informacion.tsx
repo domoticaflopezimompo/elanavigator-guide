@@ -6,6 +6,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Pagina } from "@/components/Pagina";
 import { Acciones } from "@/components/Acciones";
 import { IconoFicha } from "@/components/IconoFicha";
+import { InfoDialogo } from "@/components/InfoDialogo";
+import { TextoConImagenes } from "@/components/TextoConImagenes";
 import { EditorDialogo, type Campo, type Valores } from "@/components/EditorDialogo";
 import { useColeccion } from "@/hooks/use-coleccion";
 import { informacion } from "@/data/informacion";
@@ -60,7 +62,13 @@ const campos = (estado: Valores): Campo[] => [
   ...(estado.tipo === "material"
     ? ([{ nombre: "material", etiqueta: "Tipo", tipo: "select", opciones: MATERIALES }] as Campo[])
     : []),
-  { nombre: "detalle", etiqueta: "Información", tipo: "area" },
+  {
+    nombre: "detalle",
+    etiqueta: "Información",
+    tipo: "area",
+    ayuda:
+      "Puedes pegar URLs de imágenes (png, jpg, gif, webp…) en su propia línea y se mostrarán como imagen.",
+  },
   {
     nombre: "notas",
     etiqueta: "Notas",
@@ -96,6 +104,7 @@ function InformacionPage() {
   );
   const [editando, setEditando] = useState<Info | null>(null);
   const [creando, setCreando] = useState(false);
+  const [abierta, setAbierta] = useState<Info | null>(null);
 
   const guardar = (valores: Valores) => {
     const base = {
@@ -114,7 +123,7 @@ function InformacionPage() {
   const tarjeta = (info: Info, lista: Info[], indice: number) => (
     <article
       key={info.id}
-      className="border-border bg-card hover:border-primary/40 relative flex flex-col gap-3 rounded-2xl border p-5 transition hover:shadow-sm"
+      className="border-border bg-card hover:border-primary/40 group relative flex flex-col rounded-2xl border transition hover:shadow-sm"
     >
       <div className="absolute top-3 right-3">
         <Acciones
@@ -130,6 +139,11 @@ function InformacionPage() {
           onEliminar={() => eliminar(info.id)}
         />
       </div>
+      <button
+        type="button"
+        onClick={() => setAbierta(info)}
+        className="focus-visible:ring-ring flex w-full flex-col gap-3 p-5 text-left focus-visible:ring-2 focus-visible:outline-none"
+      >
       <h2 className="flex items-center gap-2 pr-36 text-lg font-semibold">
         {info.icono ? (
           <IconoFicha icono={info.icono} className="h-9 w-9 rounded-full text-lg" />
@@ -145,19 +159,12 @@ function InformacionPage() {
           {info.material}
         </span>
       ) : null}
-      <p className="text-muted-foreground text-base leading-relaxed">{info.detalle}</p>
-      {info.notas && info.notas.length > 0 ? (
-        <ul className="space-y-1.5 text-base">
-          {info.notas.map((nota) => (
-            <li key={nota} className="flex gap-2">
-              <span aria-hidden className="text-primary">
-                •
-              </span>
-              <span>{nota}</span>
-            </li>
-          ))}
-        </ul>
-      ) : null}
+      <TextoConImagenes
+        texto={info.detalle}
+        className="text-muted-foreground line-clamp-3 text-base"
+      />
+      <span className="text-primary text-sm font-medium group-hover:underline">Ver detalle</span>
+      </button>
     </article>
   );
 
@@ -225,6 +232,18 @@ function InformacionPage() {
         valores={editando ? aValores(editando) : VACIO}
         onGuardar={guardar}
       />
+
+      {abierta ? (
+        <InfoDialogo
+          abierto
+          onOpenChange={(valor) => !valor && setAbierta(null)}
+          titulo={abierta.titulo}
+          icono={abierta.icono}
+          etiqueta={abierta.tipo === "material" ? abierta.material : undefined}
+          detalle={abierta.detalle}
+          notas={abierta.notas}
+        />
+      ) : null}
     </Pagina>
   );
 }
