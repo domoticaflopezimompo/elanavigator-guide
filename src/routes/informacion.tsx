@@ -90,7 +90,7 @@ function aValores(info: Info): Valores {
 }
 
 function InformacionPage() {
-  const { items, crear, actualizar, eliminar, mover } = useColeccion<Info>(
+  const { items, crear, actualizar, eliminar, intercambiar } = useColeccion<Info>(
     "informacion",
     informacion,
   );
