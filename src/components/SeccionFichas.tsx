@@ -225,7 +225,20 @@ export function SeccionFichas({
         }}
         titulo={editando ? "Editar ficha" : "Nueva ficha"}
         campos={campos}
-        valores={editando ? aValores(editando) : vacia}
+        valores={
+          editando
+            ? {
+                ...aValores(editando),
+                ...Object.fromEntries(
+                  (extras?.(aValores(editando)) ?? []).map((campo) => [
+                    campo.nombre,
+                    ((editando as unknown as Record<string, unknown>)[campo.nombre] as string) ??
+                      "",
+                  ]),
+                ),
+              }
+            : vacia
+        }
         onGuardar={guardar}
       />
     </Pagina>
