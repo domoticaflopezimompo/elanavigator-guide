@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Pagina } from "@/components/Pagina";
 import { Acciones } from "@/components/Acciones";
 import { EditorDialogo, type Campo, type Valores } from "@/components/EditorDialogo";
+import { IconoFicha } from "@/components/IconoFicha";
 import { useColeccion } from "@/hooks/use-coleccion";
 import { contactos } from "@/data/contactos";
 import type { Contacto } from "@/data/tipos";
@@ -27,6 +28,13 @@ export const Route = createFileRoute("/telefonos")({
 
 const CAMPOS: Campo[] = [
   { nombre: "nombre", etiqueta: "Nombre", tipo: "texto" },
+  {
+    nombre: "icono",
+    etiqueta: "Icono",
+    tipo: "texto",
+    marcador: "🚑 o https://…/imagen.png",
+    ayuda: "Pega un emoji o la URL de una imagen. Puede quedar vacío.",
+  },
   { nombre: "rol", etiqueta: "Rol o servicio", tipo: "texto", marcador: "Enfermera de referencia" },
   { nombre: "telefono", etiqueta: "Teléfono", tipo: "texto", marcador: "+34 600 000 000" },
   { nombre: "nota", etiqueta: "Cuándo llamar", tipo: "area" },
@@ -41,11 +49,12 @@ const CAMPOS: Campo[] = [
   },
 ];
 
-const VACIO: Valores = { nombre: "", rol: "", telefono: "", nota: "", urgente: "no" };
+const VACIO: Valores = { nombre: "", icono: "", rol: "", telefono: "", nota: "", urgente: "no" };
 
 function aValores(contacto: Contacto): Valores {
   return {
     nombre: contacto.nombre,
+    icono: contacto.icono ?? "",
     rol: contacto.rol,
     telefono: contacto.telefono,
     nota: contacto.nota ?? "",
@@ -64,6 +73,7 @@ function TelefonosPage() {
   const guardar = (valores: Valores) => {
     const base = {
       nombre: (valores.nombre as string).trim() || "Sin nombre",
+      icono: ((valores.icono as string) ?? "").trim() || undefined,
       rol: valores.rol as string,
       telefono: (valores.telefono as string).trim(),
       nota: (valores.nota as string).trim() || undefined,
@@ -104,16 +114,20 @@ function TelefonosPage() {
               href={`tel:${contacto.telefono.replace(/\s/g, "")}`}
               className="flex min-w-0 flex-1 items-center gap-4"
             >
-              <span
-                className={[
-                  "flex h-12 w-12 shrink-0 items-center justify-center rounded-full",
-                  contacto.urgente
-                    ? "bg-destructive text-destructive-foreground"
-                    : "bg-primary/10 text-primary",
-                ].join(" ")}
-              >
-                <Phone className="h-5 w-5" />
-              </span>
+              {contacto.icono ? (
+                <IconoFicha icono={contacto.icono} className="h-12 w-12 rounded-full text-2xl" />
+              ) : (
+                <span
+                  className={[
+                    "flex h-12 w-12 shrink-0 items-center justify-center rounded-full",
+                    contacto.urgente
+                      ? "bg-destructive text-destructive-foreground"
+                      : "bg-primary/10 text-primary",
+                  ].join(" ")}
+                >
+                  <Phone className="h-5 w-5" />
+                </span>
+              )}
               <span className="min-w-0">
                 <span className="block text-lg font-semibold">{contacto.nombre}</span>
                 <span className="text-muted-foreground block text-sm">{contacto.rol}</span>
