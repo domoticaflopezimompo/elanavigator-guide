@@ -63,11 +63,19 @@ export interface Ficha {
   videoYoutube?: string;
   /** Tipo de ficha, usado para agrupar (por ejemplo en Ejercicios). */
   tipo?: string;
+  /** Dispositivo de material asociado (ejercicio respiratorio). */
+  dispositivo?: string;
 }
 
 export interface Info {
   id: string;
   titulo: string;
+  /** Emoji, texto corto o URL de imagen que representa la ficha. */
+  icono?: string;
+  /** Tipo de información: casa, material o familia. */
+  tipo?: string;
+  /** Tipo de material (solo si tipo = "material"). */
+  material?: string;
   detalle: string;
   notas?: string[];
 }
@@ -75,6 +83,8 @@ export interface Info {
 export interface Contacto {
   id: string;
   nombre: string;
+  /** Emoji, texto corto o URL de imagen que representa el contacto. */
+  icono?: string;
   rol: string;
   telefono: string;
   nota?: string;
