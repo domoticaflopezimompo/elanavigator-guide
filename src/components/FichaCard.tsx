@@ -4,10 +4,12 @@ import { Badge } from "@/components/ui/badge";
 import { FichaDialogo } from "@/components/FichaDialogo";
 import { Acciones } from "@/components/Acciones";
 import { IconoFicha } from "@/components/IconoFicha";
-import type { Ficha } from "@/data/tipos";
+import { CATEGORIAS } from "@/lib/agenda";
+import type { Categoria, Ficha } from "@/data/tipos";
 
 export function FichaCard({
   ficha,
+  categoria,
   onEditar,
   onEliminar,
   onSubir,
@@ -16,6 +18,7 @@ export function FichaCard({
   puedeBajar,
 }: {
   ficha: Ficha;
+  categoria?: Categoria;
   onEditar?: () => void;
   onEliminar?: () => void;
   onSubir?: () => void;
@@ -24,6 +27,7 @@ export function FichaCard({
   puedeBajar?: boolean;
 }) {
   const [abierto, setAbierto] = useState(false);
+  const cat = categoria ? CATEGORIAS[categoria] : null;
 
   return (
     <>
@@ -52,6 +56,11 @@ export function FichaCard({
           </div>
           <p className="text-muted-foreground text-base">{ficha.resumen}</p>
           <div className="flex flex-wrap gap-2">
+            {cat ? (
+              <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${cat.clase}`}>
+                {cat.etiqueta}
+              </span>
+            ) : null}
             {ficha.videoYoutube ? (
               <Badge variant="secondary" className="gap-1 font-normal">
                 <PlayCircle className="h-3.5 w-3.5" />
@@ -85,6 +94,11 @@ export function FichaCard({
         videoYoutube={ficha.videoYoutube}
         meta={
           <>
+            {cat ? (
+              <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${cat.clase}`}>
+                {cat.etiqueta}
+              </span>
+            ) : null}
             <Badge variant="secondary" className="font-normal">
               {ficha.frecuencia}
             </Badge>

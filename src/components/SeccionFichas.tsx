@@ -6,6 +6,7 @@ import { Pagina } from "@/components/Pagina";
 import { FichaCard } from "@/components/FichaCard";
 import { EditorDialogo, type Campo, type Valores } from "@/components/EditorDialogo";
 import { useColeccion } from "@/hooks/use-coleccion";
+import { categoriaDe } from "@/lib/secciones";
 import type { Ficha } from "@/data/tipos";
 import type { ReactNode } from "react";
 
@@ -136,6 +137,7 @@ export function SeccionFichas({
     <FichaCard
       key={ficha.id}
       ficha={ficha}
+      categoria={categoriaDe(clave, ficha.tipo)}
       onSubir={() =>
         grupos ? intercambiar(ficha.id, lista[indice - 1].id) : mover(ficha.id, -1)
       }
