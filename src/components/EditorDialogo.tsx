@@ -211,3 +211,86 @@ export function EditorDialogo({
     </Dialog>
   );
 }
+/** Galería editable: permite pegar URLs de imagen o subir archivos del dispositivo. */
+function CampoImagenes({
+  valores,
+  onCambiar,
+}: {
+  valores: string[];
+  onCambiar: (lista: string[]) => void;
+}) {
+  const [url, setUrl] = useState("");
+
+  const añadir = (valor: string) => {
+    if (!valor.trim()) return;
+    onCambiar([...valores, valor.trim()]);
+  };
+
+  return (
+    <div className="space-y-3">
+      {valores.length > 0 ? (
+        <div className="flex flex-wrap gap-2">
+          {valores.map((imagen, indice) => (
+            <div key={`${imagen}-${indice}`} className="relative">
+              <img
+                src={imagen}
+                alt=""
+                className="border-border h-20 w-20 rounded-xl border object-cover"
+              />
+              <button
+                type="button"
+                aria-label="Quitar imagen"
+                onClick={() => onCambiar(valores.filter((_, i) => i !== indice))}
+                className="bg-destructive text-destructive-foreground absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-full"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      <div className="flex gap-2">
+        <Input
+          value={url}
+          placeholder="https://…/imagen.jpg"
+          onChange={(evento) => setUrl(evento.target.value)}
+          onKeyDown={(evento) => {
+            if (evento.key === "Enter") {
+              evento.preventDefault();
+              añadir(url);
+              setUrl("");
+            }
+          }}
+        />
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => {
+            añadir(url);
+            setUrl("");
+          }}
+        >
+          Añadir
+        </Button>
+      </div>
+
+      <label className="border-border text-muted-foreground hover:bg-muted flex cursor-pointer items-center justify-center rounded-xl border border-dashed px-3 py-2 text-sm">
+        Subir imagen del dispositivo
+        <input
+          type="file"
+          accept="image/*"
+          multiple
+          className="hidden"
+          onChange={async (evento) => {
+            const archivos = Array.from(evento.target.files ?? []);
+            const nuevas: string[] = [];
+            for (const archivo of archivos) nuevas.push(await archivoAImagen(archivo));
+            onCambiar([...valores, ...nuevas]);
+            evento.target.value = "";
+          }}
+        />
+      </label>
+    </div>
+  );
+}
