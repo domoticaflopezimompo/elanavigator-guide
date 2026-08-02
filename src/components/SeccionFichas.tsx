@@ -138,6 +138,7 @@ export function SeccionFichas({
       key={ficha.id}
       ficha={ficha}
       categoria={categoriaDe(clave, ficha.tipo)}
+      etiqueta={titulo}
       onSubir={() =>
         grupos ? intercambiar(ficha.id, lista[indice - 1].id) : mover(ficha.id, -1)
       }

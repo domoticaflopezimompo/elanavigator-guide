@@ -89,7 +89,12 @@ function EmergenciasPage() {
           {items.map((protocolo, indice) => (
             <article key={protocolo.id} className="border-border bg-card rounded-2xl border p-5">
               <div className="flex items-start justify-between gap-2">
-                <h3 className="text-lg font-semibold">{protocolo.situacion}</h3>
+                <div>
+                  <span className="bg-destructive/10 text-destructive mb-1.5 inline-block rounded-full px-2.5 py-0.5 text-xs font-medium">
+                    Emergencias
+                  </span>
+                  <h3 className="text-lg font-semibold">{protocolo.situacion}</h3>
+                </div>
                 <Acciones
                   nombre={protocolo.situacion}
                   onSubir={() => mover(protocolo.id, -1)}

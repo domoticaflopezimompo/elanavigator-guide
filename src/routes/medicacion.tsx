@@ -4,6 +4,7 @@ import { AlertTriangle, Clock, Plus, Utensils } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Pagina } from "@/components/Pagina";
 import { Acciones } from "@/components/Acciones";
+import { SelectorImagen } from "@/components/SelectorImagen";
 import { EditorDialogo, type Campo, type Valores } from "@/components/EditorDialogo";
 import { useColeccion } from "@/hooks/use-coleccion";
 import { CATEGORIAS } from "@/lib/agenda";
@@ -141,18 +142,25 @@ function MedicacionPage() {
                 <h2 className="text-card-foreground text-lg font-semibold">{med.nombre}</h2>
                 <p className="text-muted-foreground mt-0.5 text-sm">{med.para}</p>
               </div>
-              <Acciones
-                nombre={med.nombre}
-                onSubir={() => mover(med.id, -1)}
-                onBajar={() => mover(med.id, 1)}
-                puedeSubir={indice > 0}
-                puedeBajar={indice < items.length - 1}
-                onEditar={() => {
-                  setCreando(false);
-                  setEditando(med);
-                }}
-                onEliminar={() => eliminar(med.id)}
-              />
+              <div className="flex shrink-0 flex-col items-end gap-2">
+                <Acciones
+                  nombre={med.nombre}
+                  onSubir={() => mover(med.id, -1)}
+                  onBajar={() => mover(med.id, 1)}
+                  puedeSubir={indice > 0}
+                  puedeBajar={indice < items.length - 1}
+                  onEditar={() => {
+                    setCreando(false);
+                    setEditando(med);
+                  }}
+                  onEliminar={() => eliminar(med.id)}
+                />
+                <SelectorImagen
+                  valor={med.imagen}
+                  nombre={med.nombre}
+                  onCambiar={(imagen) => actualizar({ ...med, imagen })}
+                />
+              </div>
             </div>
 
             <dl className="mt-4 space-y-2 text-base">

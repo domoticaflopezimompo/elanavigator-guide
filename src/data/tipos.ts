@@ -48,6 +48,8 @@ export interface Medicamento {
   para: string;
   notas?: string;
   siSeOlvida: string;
+  /** Imagen del medicamento (URL o imagen subida). */
+  imagen?: string;
 }
 
 export interface Ficha {
@@ -78,6 +80,8 @@ export interface Info {
   material?: string;
   detalle: string;
   notas?: string[];
+  /** Imágenes que se muestran al abrir la ficha. */
+  imagenes?: string[];
 }
 
 export interface Contacto {
