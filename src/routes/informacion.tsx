@@ -75,6 +75,12 @@ const campos = (estado: Valores): Campo[] => [
     tipo: "lista",
     ayuda: "Una nota por línea. Puede quedar vacío.",
   },
+  {
+    nombre: "imagenes",
+    etiqueta: "Imágenes",
+    tipo: "imagenes",
+    ayuda: "Se muestran al abrir la ficha. Puedes subirlas o pegar su URL.",
+  },
 ];
 
 const VACIO: Valores = {
@@ -84,6 +90,7 @@ const VACIO: Valores = {
   material: "respiratorio",
   detalle: "",
   notas: [],
+  imagenes: [],
 };
 
 function aValores(info: Info): Valores {
@@ -94,6 +101,7 @@ function aValores(info: Info): Valores {
     material: info.material ?? "respiratorio",
     detalle: info.detalle,
     notas: info.notas ?? [],
+    imagenes: info.imagenes ?? [],
   };
 }
 
@@ -115,6 +123,7 @@ function InformacionPage() {
         valores.tipo === "material" ? ((valores.material as string) || "otros") : undefined,
       detalle: valores.detalle as string,
       notas: (valores.notas as string[]).map((linea) => linea.trim()).filter(Boolean),
+      imagenes: ((valores.imagenes as string[]) ?? []).filter(Boolean),
     };
     if (editando) actualizar({ ...editando, ...base });
     else crear(base);
@@ -158,6 +167,17 @@ function InformacionPage() {
         <span className="bg-primary/10 text-primary w-fit rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize">
           {info.material}
         </span>
+      ) : null}
+      <span className="bg-cat-comida/15 text-cat-comida w-fit rounded-full px-2.5 py-0.5 text-xs font-medium">
+        Información
+      </span>
+      {info.imagenes && info.imagenes.length > 0 ? (
+        <img
+          src={info.imagenes[0]}
+          alt=""
+          loading="lazy"
+          className="border-border h-32 w-full rounded-xl border object-cover"
+        />
       ) : null}
       <TextoConImagenes
         texto={info.detalle}
@@ -242,6 +262,7 @@ function InformacionPage() {
           etiqueta={abierta.tipo === "material" ? abierta.material : undefined}
           detalle={abierta.detalle}
           notas={abierta.notas}
+          imagenes={abierta.imagenes}
         />
       ) : null}
     </Pagina>
