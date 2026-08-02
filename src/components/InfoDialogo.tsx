@@ -16,6 +16,7 @@ interface Props {
   etiqueta?: string;
   detalle: string;
   notas?: string[];
+  imagenes?: string[];
 }
 
 export function InfoDialogo({
@@ -26,6 +27,7 @@ export function InfoDialogo({
   etiqueta,
   detalle,
   notas,
+  imagenes,
 }: Props) {
   return (
     <Dialog open={abierto} onOpenChange={onOpenChange}>
@@ -41,6 +43,20 @@ export function InfoDialogo({
         </DialogHeader>
 
         <TextoConImagenes texto={detalle} className="space-y-1 text-base" />
+
+        {imagenes && imagenes.length > 0 ? (
+          <div className="grid gap-3 sm:grid-cols-2">
+            {imagenes.map((imagen, indice) => (
+              <img
+                key={`${imagen}-${indice}`}
+                src={imagen}
+                alt=""
+                loading="lazy"
+                className="border-border max-h-72 w-full rounded-xl border object-contain"
+              />
+            ))}
+          </div>
+        ) : null}
 
         {notas && notas.length > 0 ? (
           <div>
