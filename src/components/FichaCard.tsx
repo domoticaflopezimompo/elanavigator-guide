@@ -10,6 +10,7 @@ import type { Categoria, Ficha } from "@/data/tipos";
 export function FichaCard({
   ficha,
   categoria,
+  etiqueta,
   onEditar,
   onEliminar,
   onSubir,
@@ -19,6 +20,8 @@ export function FichaCard({
 }: {
   ficha: Ficha;
   categoria?: Categoria;
+  /** Nombre de la sección mostrado en la pastilla de color. */
+  etiqueta?: string;
   onEditar?: () => void;
   onEliminar?: () => void;
   onSubir?: () => void;
@@ -58,7 +61,7 @@ export function FichaCard({
           <div className="flex flex-wrap gap-2">
             {cat ? (
               <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${cat.clase}`}>
-                {cat.etiqueta}
+                {etiqueta ?? cat.etiqueta}
               </span>
             ) : null}
             {ficha.videoYoutube ? (
@@ -96,7 +99,7 @@ export function FichaCard({
           <>
             {cat ? (
               <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${cat.clase}`}>
-                {cat.etiqueta}
+                {etiqueta ?? cat.etiqueta}
               </span>
             ) : null}
             <Badge variant="secondary" className="font-normal">
