@@ -186,6 +186,13 @@ export function EditorDialogo({
                   </div>
                 ) : null}
 
+                {campo.tipo === "imagenes" ? (
+                  <CampoImagenes
+                    valores={(valor as string[]) ?? []}
+                    onCambiar={(lista) => cambiar(campo.nombre, lista)}
+                  />
+                ) : null}
+
                 {campo.ayuda ? (
                   <p className="text-muted-foreground text-xs">{campo.ayuda}</p>
                 ) : null}
