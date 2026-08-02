@@ -53,17 +53,19 @@ export function FichaCard({
           onClick={() => setAbierto(true)}
           className="focus-visible:ring-ring flex w-full flex-col gap-3 p-5 text-left focus-visible:ring-2 focus-visible:outline-none"
         >
+          {cat ? (
+            <span
+              className={`w-fit rounded-full px-2.5 py-0.5 text-xs font-medium ${cat.clase}`}
+            >
+              {etiqueta ?? cat.etiqueta}
+            </span>
+          ) : null}
           <div className="flex items-start gap-3">
             <IconoFicha icono={ficha.icono} />
             <h3 className="text-card-foreground pr-32 text-lg font-semibold">{ficha.titulo}</h3>
           </div>
           <p className="text-muted-foreground text-base">{ficha.resumen}</p>
           <div className="flex flex-wrap gap-2">
-            {cat ? (
-              <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${cat.clase}`}>
-                {etiqueta ?? cat.etiqueta}
-              </span>
-            ) : null}
             {ficha.videoYoutube ? (
               <Badge variant="secondary" className="gap-1 font-normal">
                 <PlayCircle className="h-3.5 w-3.5" />

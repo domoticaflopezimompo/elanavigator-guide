@@ -34,12 +34,12 @@ export function SelectorImagen({
           setUrl(valor ?? "");
           setAbierto(true);
         }}
-        className="border-border text-muted-foreground hover:border-primary/50 hover:text-primary flex h-14 w-14 items-center justify-center overflow-hidden rounded-xl border border-dashed transition"
+        className="border-border text-muted-foreground hover:border-primary/50 hover:text-primary flex h-28 w-28 items-center justify-center overflow-hidden rounded-xl border border-dashed transition"
       >
         {valor ? (
           <img src={valor} alt="" className="h-full w-full object-cover" />
         ) : (
-          <ImagePlus className="h-5 w-5" />
+          <ImagePlus className="h-8 w-8" />
         )}
       </button>
 

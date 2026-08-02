@@ -45,14 +45,14 @@ export function InfoDialogo({
         <TextoConImagenes texto={detalle} className="space-y-1 text-base" />
 
         {imagenes && imagenes.length > 0 ? (
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="flex flex-col items-center gap-3">
             {imagenes.map((imagen, indice) => (
               <img
                 key={`${imagen}-${indice}`}
                 src={imagen}
                 alt=""
                 loading="lazy"
-                className="border-border max-h-72 w-full rounded-xl border object-contain"
+                className="border-border mx-auto max-h-72 w-full max-w-md rounded-xl border object-contain"
               />
             ))}
           </div>
