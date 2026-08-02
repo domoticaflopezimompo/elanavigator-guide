@@ -129,6 +129,9 @@ function TelefonosPage() {
                 </span>
               )}
               <span className="min-w-0">
+                <span className="bg-primary/10 text-primary mb-1 inline-block rounded-full px-2.5 py-0.5 text-xs font-medium">
+                  Teléfonos
+                </span>
                 <span className="block text-lg font-semibold">{contacto.nombre}</span>
                 <span className="text-muted-foreground block text-sm">{contacto.rol}</span>
                 <span
