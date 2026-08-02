@@ -153,6 +153,9 @@ function InformacionPage() {
         onClick={() => setAbierta(info)}
         className="focus-visible:ring-ring flex w-full flex-col gap-3 p-5 text-left focus-visible:ring-2 focus-visible:outline-none"
       >
+      <span className="bg-cat-comida/15 text-cat-comida w-fit rounded-full px-2.5 py-0.5 text-xs font-medium">
+        Información
+      </span>
       <h2 className="flex items-center gap-2 pr-36 text-lg font-semibold">
         {info.icono ? (
           <IconoFicha icono={info.icono} className="h-9 w-9 rounded-full text-lg" />
@@ -168,19 +171,9 @@ function InformacionPage() {
           {info.material}
         </span>
       ) : null}
-      <span className="bg-cat-comida/15 text-cat-comida w-fit rounded-full px-2.5 py-0.5 text-xs font-medium">
-        Información
-      </span>
-      {info.imagenes && info.imagenes.length > 0 ? (
-        <img
-          src={info.imagenes[0]}
-          alt=""
-          loading="lazy"
-          className="border-border h-32 w-full rounded-xl border object-cover"
-        />
-      ) : null}
       <TextoConImagenes
         texto={info.detalle}
+        soloTexto
         className="text-muted-foreground line-clamp-3 text-base"
       />
       <span className="text-primary text-sm font-medium group-hover:underline">Ver detalle</span>
