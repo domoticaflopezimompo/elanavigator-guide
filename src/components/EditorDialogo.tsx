@@ -11,11 +11,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { archivoAImagen } from "@/lib/imagen";
+import { X } from "lucide-react";
 
 export type Campo = {
   nombre: string;
   etiqueta: string;
-  tipo: "texto" | "area" | "lista" | "select" | "dias";
+  tipo: "texto" | "area" | "lista" | "select" | "dias" | "imagenes";
   marcador?: string;
   ayuda?: string;
   opciones?: { valor: string; etiqueta: string }[];
