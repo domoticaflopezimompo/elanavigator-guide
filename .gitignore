@@ -31,3 +31,7 @@ dist-ssr
 *.sln
 *.sw?
 .env
+# Archivos locales
+logs/
+backups/
+deploy.sh.bak
