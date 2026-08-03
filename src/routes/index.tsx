@@ -339,9 +339,12 @@ function Index() {
           videoYoutube={abierta.videoYoutube}
           meta={
             <>
-              <Badge variant="secondary" className="font-normal">
-                {CATEGORIAS[abierta.categoria].etiqueta}
-              </Badge>
+              <span
+                className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${CATEGORIAS[abierta.categoria].clase}`}
+              >
+                {SECCIONES.find((item) => item.clave === abierta.origen?.seccion)?.etiqueta ??
+                  CATEGORIAS[abierta.categoria].etiqueta}
+              </span>
               {abierta.hora ? (
                 <Badge variant="secondary" className="font-normal">
                   {abierta.hora}

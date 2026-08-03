@@ -16,6 +16,7 @@ import { Route as InformacionRouteImport } from './routes/informacion'
 import { Route as EmergenciasRouteImport } from './routes/emergencias'
 import { Route as EjerciciosRouteImport } from './routes/ejercicios'
 import { Route as CuidadosRouteImport } from './routes/cuidados'
+import { Route as ComidasRouteImport } from './routes/comidas'
 import { Route as IndexRouteImport } from './routes/index'
 
 const TelefonosRoute = TelefonosRouteImport.update({
@@ -53,6 +54,11 @@ const CuidadosRoute = CuidadosRouteImport.update({
   path: '/cuidados',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ComidasRoute = ComidasRouteImport.update({
+  id: '/comidas',
+  path: '/comidas',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -61,6 +67,7 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/comidas': typeof ComidasRoute
   '/cuidados': typeof CuidadosRoute
   '/ejercicios': typeof EjerciciosRoute
   '/emergencias': typeof EmergenciasRoute
@@ -71,6 +78,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/comidas': typeof ComidasRoute
   '/cuidados': typeof CuidadosRoute
   '/ejercicios': typeof EjerciciosRoute
   '/emergencias': typeof EmergenciasRoute
@@ -82,6 +90,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/comidas': typeof ComidasRoute
   '/cuidados': typeof CuidadosRoute
   '/ejercicios': typeof EjerciciosRoute
   '/emergencias': typeof EmergenciasRoute
@@ -94,6 +103,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/comidas'
     | '/cuidados'
     | '/ejercicios'
     | '/emergencias'
@@ -104,6 +114,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/comidas'
     | '/cuidados'
     | '/ejercicios'
     | '/emergencias'
@@ -114,6 +125,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/comidas'
     | '/cuidados'
     | '/ejercicios'
     | '/emergencias'
@@ -125,6 +137,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ComidasRoute: typeof ComidasRoute
   CuidadosRoute: typeof CuidadosRoute
   EjerciciosRoute: typeof EjerciciosRoute
   EmergenciasRoute: typeof EmergenciasRoute
@@ -185,6 +198,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CuidadosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/comidas': {
+      id: '/comidas'
+      path: '/comidas'
+      fullPath: '/comidas'
+      preLoaderRoute: typeof ComidasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -197,6 +217,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ComidasRoute: ComidasRoute,
   CuidadosRoute: CuidadosRoute,
   EjerciciosRoute: EjerciciosRoute,
   EmergenciasRoute: EmergenciasRoute,
