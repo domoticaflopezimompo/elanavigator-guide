@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { useState } from "react";
 import {
   CalendarDays,
   Pill,
@@ -9,6 +10,7 @@ import {
   ShieldAlert,
   Home,
   UtensilsCrossed,
+  Loader2,
 } from "lucide-react";
 
 const ENLACES = [
@@ -20,10 +22,22 @@ const ENLACES = [
   { to: "/emergencias", etiqueta: "Emergencias", Icono: ShieldAlert },
   { to: "/telefonos", etiqueta: "Teléfonos", Icono: Phone },
   { to: "/informacion", etiqueta: "Información", Icono: Home },
-  { to: "/comidas", etiqueta: "Comidas", Icono: UtensilsCrossed },
 ] as const;
 
+const URL_COMIDAS = "http://192.168.1.15:8123/8c37d706_mealie_planner";
+
+function useAbrirComidas() {
+  const [abriendo, setAbriendo] = useState(false);
+  const abrir = () => {
+    setAbriendo(true);
+    window.open(URL_COMIDAS, "_blank", "noopener,noreferrer");
+    setTimeout(() => setAbriendo(false), 2500);
+  };
+  return { abriendo, abrir };
+}
+
 export function CabeceraEscritorio() {
+  const { abriendo, abrir } = useAbrirComidas();
   return (
     <header className="sticky top-0 z-40 hidden border-b border-border bg-background/85 backdrop-blur md:block">
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-6 px-6 py-3">
@@ -52,6 +66,18 @@ export function CabeceraEscritorio() {
               {etiqueta}
             </Link>
           ))}
+          <button
+            type="button"
+            onClick={abrir}
+            className="text-muted-foreground hover:bg-muted hover:text-foreground flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition"
+          >
+            {abriendo ? (
+              <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+            ) : (
+              <UtensilsCrossed className="h-4 w-4" aria-hidden="true" />
+            )}
+            {abriendo ? "Abriendo…" : "Comidas"}
+          </button>
         </nav>
       </div>
     </header>
@@ -59,6 +85,7 @@ export function CabeceraEscritorio() {
 }
 
 export function BarraMovil() {
+  const { abriendo, abrir } = useAbrirComidas();
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
       <div className="grid grid-cols-9">
@@ -78,6 +105,18 @@ export function BarraMovil() {
             {etiqueta}
           </Link>
         ))}
+        <button
+          type="button"
+          onClick={abrir}
+          className="text-muted-foreground flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium"
+        >
+          {abriendo ? (
+            <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
+          ) : (
+            <UtensilsCrossed className="h-5 w-5" aria-hidden="true" />
+          )}
+          {abriendo ? "Abriendo…" : "Comidas"}
+        </button>
       </div>
     </nav>
   );
