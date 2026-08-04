@@ -60,7 +60,16 @@ const campos = (estado: Valores): Campo[] => [
     opciones: GRUPOS.map((grupo) => ({ valor: grupo.valor, etiqueta: grupo.etiqueta })),
   },
   ...(estado.tipo === "material"
-    ? ([{ nombre: "material", etiqueta: "Tipo", tipo: "select", opciones: MATERIALES }] as Campo[])
+    ? ([
+        { nombre: "material", etiqueta: "Tipo", tipo: "select", opciones: MATERIALES },
+        {
+          nombre: "ubicacion",
+          etiqueta: "Ubicación",
+          tipo: "texto",
+          marcador: "Armario blanco de la habitación",
+          ayuda: "Dónde se guarda este material. Puede quedar vacío.",
+        },
+      ] as Campo[])
     : []),
   {
     nombre: "detalle",
@@ -88,6 +97,7 @@ const VACIO: Valores = {
   icono: "",
   tipo: "casa",
   material: "respiratorio",
+  ubicacion: "",
   detalle: "",
   notas: [],
   imagenes: [],
@@ -99,6 +109,7 @@ function aValores(info: Info): Valores {
     icono: info.icono ?? "",
     tipo: info.tipo ?? "casa",
     material: info.material ?? "respiratorio",
+    ubicacion: info.ubicacion ?? "",
     detalle: info.detalle,
     notas: info.notas ?? [],
     imagenes: info.imagenes ?? [],
@@ -121,6 +132,10 @@ function InformacionPage() {
       tipo: (valores.tipo as string) || "casa",
       material:
         valores.tipo === "material" ? ((valores.material as string) || "otros") : undefined,
+      ubicacion:
+        valores.tipo === "material"
+          ? ((valores.ubicacion as string) ?? "").trim() || undefined
+          : undefined,
       detalle: valores.detalle as string,
       notas: (valores.notas as string[]).map((linea) => linea.trim()).filter(Boolean),
       imagenes: ((valores.imagenes as string[]) ?? []).filter(Boolean),
@@ -253,6 +268,7 @@ function InformacionPage() {
           titulo={abierta.titulo}
           icono={abierta.icono}
           etiqueta={abierta.tipo === "material" ? abierta.material : undefined}
+          ubicacion={abierta.tipo === "material" ? abierta.ubicacion : undefined}
           detalle={abierta.detalle}
           notas={abierta.notas}
           imagenes={abierta.imagenes}

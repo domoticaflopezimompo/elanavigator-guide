@@ -14,6 +14,7 @@ interface Props {
   titulo: string;
   icono?: string;
   etiqueta?: string;
+  ubicacion?: string;
   detalle: string;
   notas?: string[];
   imagenes?: string[];
@@ -25,6 +26,7 @@ export function InfoDialogo({
   titulo,
   icono,
   etiqueta,
+  ubicacion,
   detalle,
   notas,
   imagenes,
@@ -41,6 +43,15 @@ export function InfoDialogo({
             <DialogDescription className="text-base capitalize">{etiqueta}</DialogDescription>
           ) : null}
         </DialogHeader>
+
+        {ubicacion ? (
+          <p className="text-base">
+            <span className="text-muted-foreground text-sm font-semibold tracking-wide uppercase">
+              Ubicación:{" "}
+            </span>
+            {ubicacion}
+          </p>
+        ) : null}
 
         <TextoConImagenes texto={detalle} className="space-y-1 text-base" />
 
