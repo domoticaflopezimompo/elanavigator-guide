@@ -198,7 +198,7 @@ export function SeccionFichas({
                     No hay fichas en esta sección todavía.
                   </p>
                 ) : (
-                  <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                     {lista.map((ficha, indice) => tarjeta(ficha, lista, indice))}
                   </div>
                 )}
@@ -207,7 +207,7 @@ export function SeccionFichas({
           })}
         </Tabs>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {items.map((ficha, indice) => tarjeta(ficha, items, indice))}
         </div>
       )}
