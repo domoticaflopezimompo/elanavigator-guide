@@ -217,7 +217,7 @@ function InformacionPage() {
                   No hay información en esta sección todavía.
                 </p>
               ) : (
-                <section className="grid gap-4 sm:grid-cols-2">
+                <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                   {lista.map((info, indice) => tarjeta(info, lista, indice))}
                 </section>
               )}

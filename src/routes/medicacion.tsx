@@ -129,7 +129,7 @@ function MedicacionPage() {
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {items.map((med, indice) => (
           <article key={med.id} className="border-border bg-card rounded-2xl border p-5">
             <div className="flex items-start justify-between gap-2">

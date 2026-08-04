@@ -85,7 +85,7 @@ function EmergenciasPage() {
           <ShieldAlert className="text-destructive h-5 w-5" />
           Qué hacer si…
         </h2>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {items.map((protocolo, indice) => (
             <article key={protocolo.id} className="border-border bg-card rounded-2xl border p-5">
               <div className="flex items-start justify-between gap-2">

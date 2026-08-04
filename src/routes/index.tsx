@@ -232,7 +232,7 @@ function Index() {
   };
 
   return (
-    <main className="mx-auto max-w-5xl px-4 pt-6 pb-28 md:px-6 md:pb-16">
+    <main className="mx-auto max-w-7xl px-4 pt-6 pb-28 md:px-6 md:pb-16">
       <header className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="text-primary text-sm font-medium">
