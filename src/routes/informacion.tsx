@@ -186,6 +186,14 @@ function InformacionPage() {
           {info.material}
         </span>
       ) : null}
+      {info.tipo === "material" && info.ubicacion ? (
+        <p className="text-base">
+          <span className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
+            Ubicación:{" "}
+          </span>
+          {info.ubicacion}
+        </p>
+      ) : null}
       <TextoConImagenes
         texto={info.detalle}
         soloTexto
