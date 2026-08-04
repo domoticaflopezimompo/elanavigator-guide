@@ -78,6 +78,8 @@ export interface Info {
   tipo?: string;
   /** Tipo de material (solo si tipo = "material"). */
   material?: string;
+  /** Ubicación del material (solo si tipo = "material"). */
+  ubicacion?: string;
   detalle: string;
   notas?: string[];
   /** Imágenes que se muestran al abrir la ficha. */
