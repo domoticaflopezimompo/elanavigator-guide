@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import { Plus } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { ChevronDown, Clock3, Plus } from "lucide-react";
+import { toast } from "sonner";
 import { Calendario } from "@/components/Calendario";
 import { TareaItem } from "@/components/TareaItem";
 import { FichaDialogo } from "@/components/FichaDialogo";
@@ -22,7 +23,12 @@ import {
   FRANJAS,
   claveFecha,
   esMismoDia,
+  franjaDeMinutos,
   formatoLargo,
+  horaCorta,
+  indiceFranja,
+  minutosDeFecha,
+  minutosDeHora,
   tareasDelDia,
 } from "@/lib/agenda";
 import type { Franja, Tarea } from "@/data/tipos";
@@ -144,6 +150,15 @@ function Index() {
   const [abierta, setAbierta] = useState<Tarea | null>(null);
   const [editando, setEditando] = useState<Tarea | null>(null);
   const [creando, setCreando] = useState(false);
+  const [ahora, setAhora] = useState<Date | null>(null);
+  const [plegadas, setPlegadas] = useState<Record<string, boolean>>({});
+
+  // Reloj solo en cliente para no romper la hidratación.
+  useEffect(() => {
+    setAhora(new Date());
+    const id = setInterval(() => setAhora(new Date()), 30_000);
+    return () => clearInterval(id);
+  }, []);
 
   const { items, crear, actualizar, eliminar, intercambiar } = useColeccion<Tarea>(
     "tareas",
@@ -189,6 +204,56 @@ function Index() {
     [seleccionada, items, fichas],
   );
   const hechas = delDia.filter((tarea) => completadas.includes(tarea.id)).length;
+
+  const esHoy = esMismoDia(seleccionada, hoy);
+  const minutosAhora = ahora ? minutosDeFecha(ahora) : null;
+  const franjaActual = minutosAhora !== null ? franjaDeMinutos(minutosAhora) : null;
+  const diaPasado = claveFecha(seleccionada) < claveFecha(hoy);
+
+  const estaAtrasada = (tarea: Tarea) => {
+    if (completadas.includes(tarea.id)) return false;
+    if (diaPasado) return true;
+    if (!esHoy || minutosAhora === null) return false;
+    const minutos = minutosDeHora(tarea.hora);
+    if (minutos !== null) return minutos < minutosAhora;
+    return indiceFranja(tarea.franja) < indiceFranja(franjaActual!);
+  };
+
+  const pendientes = delDia.filter((tarea) => !completadas.includes(tarea.id));
+  const proxima = useMemo(() => {
+    if (pendientes.length === 0) return null;
+    const ordenadas = [...pendientes].sort((a, b) => {
+      const fa = indiceFranja(a.franja) - indiceFranja(b.franja);
+      if (fa !== 0) return fa;
+      return (minutosDeHora(a.hora) ?? 24 * 60) - (minutosDeHora(b.hora) ?? 24 * 60);
+    });
+    if (!esHoy || minutosAhora === null) return ordenadas[0];
+    const futura = ordenadas.find((tarea) => {
+      const minutos = minutosDeHora(tarea.hora);
+      return minutos === null ? true : minutos >= minutosAhora;
+    });
+    return futura ?? ordenadas[0];
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [delDia, completadas, esHoy, minutosAhora]);
+
+  const alternarConAviso = (tarea: Tarea) => {
+    const estaba = completadas.includes(tarea.id);
+    alternar(tarea.id);
+    toast(estaba ? `"${tarea.titulo}" vuelve a estar pendiente` : `"${tarea.titulo}" hecha`, {
+      action: { label: "Deshacer", onClick: () => alternar(tarea.id) },
+      duration: 5000,
+    });
+  };
+
+  const estaPlegada = (franja: Franja, tareasFranja: Tarea[]) => {
+    const manual = plegadas[franja];
+    if (manual !== undefined) return manual;
+    if (diaPasado) return false;
+    if (!esHoy || franjaActual === null) return false;
+    const pasada = indiceFranja(franja) < indiceFranja(franjaActual);
+    const todasHechas = tareasFranja.every((tarea) => completadas.includes(tarea.id));
+    return pasada && todasHechas;
+  };
 
   const guardar = (valores: Valores) => {
     const tipo = valores.recurrenciaTipo as "diaria" | "semanal" | "fecha";
@@ -246,11 +311,32 @@ function Index() {
               <span>
                 {hechas} de {delDia.length} tareas hechas
               </span>
+              {ahora && esHoy ? (
+                <span className="flex items-center gap-1 font-medium">
+                  <Clock3 className="h-3.5 w-3.5" />
+                  {horaCorta(ahora)}
+                </span>
+              ) : null}
               {delDia.length > 0 && hechas === delDia.length ? (
                 <span className="text-primary font-medium">¡Día completo!</span>
               ) : null}
             </div>
             <Progress value={delDia.length ? (hechas / delDia.length) * 100 : 0} />
+            {proxima ? (
+              <button
+                type="button"
+                onClick={() => setAbierta(proxima)}
+                className="border-primary/40 bg-primary/5 hover:bg-primary/10 focus-visible:ring-ring mt-3 flex w-full items-center gap-2 rounded-xl border px-3 py-2 text-left text-sm focus-visible:ring-2 focus-visible:outline-none"
+              >
+                <span className="text-primary font-semibold">
+                  {esHoy ? "Ahora:" : "Siguiente:"}
+                </span>
+                <span className="min-w-0 flex-1 truncate">{proxima.titulo}</span>
+                {proxima.hora ? (
+                  <span className="text-muted-foreground shrink-0">{proxima.hora}</span>
+                ) : null}
+              </button>
+            ) : null}
           </div>
         </div>
         <Button
@@ -285,20 +371,54 @@ function Index() {
           {FRANJAS.map((franja) => {
             const tareasFranja = delDia.filter((tarea) => tarea.franja === franja.id);
             if (tareasFranja.length === 0) return null;
+            const plegada = estaPlegada(franja.id, tareasFranja);
+            const hechasFranja = tareasFranja.filter((tarea) =>
+              completadas.includes(tarea.id),
+            ).length;
+            const enCurso = esHoy && franjaActual === franja.id;
 
             return (
-              <section key={franja.id}>
-                <h2 className="text-muted-foreground mb-3 text-sm font-semibold tracking-wide uppercase">
-                  {franja.etiqueta}
-                </h2>
-                <div className="space-y-3">
+              <section
+                key={franja.id}
+                className={
+                  enCurso ? "border-primary/40 bg-primary/5 rounded-2xl border p-3 md:p-4" : ""
+                }
+              >
+                <button
+                  type="button"
+                  onClick={() =>
+                    setPlegadas((previo) => ({ ...previo, [franja.id]: !plegada }))
+                  }
+                  aria-expanded={!plegada}
+                  className="focus-visible:ring-ring mb-3 flex w-full items-center gap-2 text-left focus-visible:ring-2 focus-visible:outline-none"
+                >
+                  <ChevronDown
+                    className={`h-4 w-4 shrink-0 transition-transform ${plegada ? "-rotate-90" : ""}`}
+                  />
+                  <h2
+                    className={`text-sm font-semibold tracking-wide uppercase ${enCurso ? "text-primary" : "text-muted-foreground"}`}
+                  >
+                    {franja.etiqueta}
+                  </h2>
+                  {enCurso ? (
+                    <span className="bg-primary/15 text-primary rounded-full px-2 py-0.5 text-xs font-medium">
+                      En curso
+                    </span>
+                  ) : null}
+                  <span className="text-muted-foreground ml-auto text-xs">
+                    {hechasFranja}/{tareasFranja.length}
+                  </span>
+                </button>
+                <div className={`space-y-3 ${plegada ? "hidden" : ""}`}>
                   {tareasFranja.map((tarea, indice) => (
                     <TareaItem
                       key={tarea.id}
                       tarea={tarea}
                       hecha={completadas.includes(tarea.id)}
+                      atrasada={estaAtrasada(tarea)}
+                      proxima={proxima?.id === tarea.id}
                       onAbrir={() => setAbierta(tarea)}
-                      onAlternar={() => alternar(tarea.id)}
+                      onAlternar={() => alternarConAviso(tarea)}
                       puedeSubir={indice > 0}
                       puedeBajar={indice < tareasFranja.length - 1}
                       onSubir={() =>

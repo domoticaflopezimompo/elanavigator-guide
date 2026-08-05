@@ -48,3 +48,39 @@ export function formatoLargo(fecha: Date): string {
     month: "long",
   });
 }
+
+/** Minutos desde medianoche de una hora "HH:MM". Null si no es válida. */
+export function minutosDeHora(hora?: string): number | null {
+  if (!hora) return null;
+  const encontrado = /^(\d{1,2}):(\d{2})/.exec(hora.trim());
+  if (!encontrado) return null;
+  const h = Number(encontrado[1]);
+  const m = Number(encontrado[2]);
+  if (h > 23 || m > 59) return null;
+  return h * 60 + m;
+}
+
+/** Minutos desde medianoche de una fecha. */
+export function minutosDeFecha(fecha: Date): number {
+  return fecha.getHours() * 60 + fecha.getMinutes();
+}
+
+/** Hora corta "HH:MM" en formato local. */
+export function horaCorta(fecha: Date): string {
+  return fecha.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
+}
+
+/** Franja del día a la que pertenece una hora concreta. */
+export function franjaDeMinutos(minutos: number): Franja {
+  if (minutos >= 5 * 60 && minutos < 12 * 60) return "manana";
+  if (minutos < 16 * 60) return "mediodia";
+  if (minutos < 21 * 60) return "tarde";
+  return "noche";
+}
+
+const ORDEN_FRANJA: Franja[] = ["manana", "mediodia", "tarde", "noche"];
+
+/** Compara dos franjas por su orden natural en el día. */
+export function indiceFranja(franja: Franja): number {
+  return ORDEN_FRANJA.indexOf(franja);
+}
