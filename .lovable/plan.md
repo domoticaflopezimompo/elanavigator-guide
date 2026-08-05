@@ -1,45 +1,47 @@
-## Objetivo
+# Mejoras de usabilidad y funciones nuevas
 
-Una web sencilla, práctica y moderna para el equipo de cuidadores: qué hay que hacer hoy, cómo hacerlo (vídeo o instrucciones), qué medicación toca y a quién llamar en una urgencia.
+Enfoque: que el día a día se resuelva en menos toques y que lo importante esté visible sin abrir nada. Se mantiene el estilo actual (azul-verde, Manrope) y todas las secciones tal como están.
 
-Sin login y sin base de datos: todo el contenido vive en archivos de datos dentro del proyecto, así puedes exportar el código y desplegarlo en tu propia infraestructura como una web estática/Node.
+## 1. La pantalla "Hoy" como centro de mando
 
-## Páginas
+- **Barra de estado del día**: "X de Y tareas hechas", hora actual y la próxima tarea pendiente destacada ("Ahora: Aspiración de secreciones — 11:00").
+- **Franja actual resaltada**: mañana / mediodía / tarde / noche; la franja en curso aparece abierta y las pasadas se pliegan.
+- **Marcar sin abrir**: casilla grande a la izquierda de cada tarea para completarla de un toque, con deshacer inmediato. Abrir la ficha sigue siendo un toque en el texto.
+- **Tareas atrasadas**: las de horas ya pasadas sin completar se marcan en rojo suave con la etiqueta "Pendiente".
 
-1. **Inicio / Hoy** (`/`) — la pantalla principal
-   - Cabecera con la fecha y el resumen del día ("6 de 9 tareas hechas").
-   - **Calendario mensual** compacto: al pulsar un día se muestran las tareas de ese día.
-   - **Lista de tareas del día** agrupada por franja (mañana / mediodía / tarde / noche), con icono de categoría (medicación, ejercicio, logopedia, higiene, comida).
-   - Al pulsar una tarea → **popup** con: descripción paso a paso, avisos importantes, y vídeo de YouTube incrustado si la tarea lo tiene.
-   - Checkbox para marcar como hecha; se guarda en el navegador (por día) para que el turno siguiente vea el estado. Sin backend esto es local a cada dispositivo — lo indicaré con un aviso discreto.
+## 2. Búsqueda global
 
-2. **Medicación** (`/medicacion`) — tabla clara por horario: fármaco, dosis, vía, con/sin comida, notas y qué hacer si se olvida una toma.
+Buscador en la cabecera que filtra por título en todas las secciones (medicación, cuidados, ejercicios, logopedia, teléfonos, información) y abre la ficha directamente. Útil cuando un cuidador nuevo no sabe en qué sección está algo.
 
-3. **Ejercicios** (`/ejercicios`) — fichas de movilidad/respiración con series, frecuencia, precauciones y vídeo en popup.
+## 3. Notas del turno
 
-4. **Logopedia** (`/logopedia`) — ejercicios de voz, deglución y pautas de alimentación segura (espesantes, postura), con vídeo en popup.
+Bloque en "Hoy" para escribir observaciones del día (guardadas en la nube, visibles en todos los dispositivos), con fecha y acceso a las de días anteriores. Es lo que ahora se resuelve en papel o por WhatsApp.
 
-5. **Emergencias** (`/emergencias`) — teléfonos grandes y pulsables (`tel:`): 112, neumología/UCRI, enfermera de referencia, médico de cabecera, familia. Bloque de "qué hacer si…" (atragantamiento, disnea, fallo del ventilador/aspirador) siempre visible arriba.
+## 4. Legibilidad y toques más cómodos
 
-Navegación fija: en móvil barra inferior con 5 iconos, en escritorio cabecera superior. Botón rojo de emergencias siempre accesible.
+- Botón de **texto grande** que aumenta la tipografía de fichas y tareas, recordado por dispositivo.
+- Áreas de pulsación mínimas de 44px; iconos de editar/eliminar algo más separados.
+- Cabecera de navegación con scroll horizontal en móvil en vez de comprimir 9 iconos.
 
-## Diseño
+## 5. Acceso rápido de emergencia
 
-Moderno pero calmado y legible: fondo claro, tipografía grande (pensado para leer con prisa), tarjetas con esquinas suaves, color de acento azul-verde y rojo reservado solo para emergencias. Todo con tokens del sistema de diseño, responsive y con buen contraste.
+Botón fijo abajo a la derecha con los teléfonos marcados como urgentes (llamada directa), disponible desde cualquier página.
 
-## Contenido
+## 6. Hoja del día imprimible
 
-Rellenaré todo con contenido realista de ejemplo para ELA (medicación tipo riluzol, ejercicios de movilidad pasiva y respiratorios, pautas de deglución, teléfonos de plantilla). Después me pasas los datos reales y los sustituyo, o los editas tú en un único archivo.
+Botón para generar una hoja del día con tareas, horarios y medicación con dosis. Sirve para dejarla en la nevera o para el relevo de cuidador.
 
 ## Detalles técnicos
 
-- TanStack Start + React + Tailwind, una ruta por sección con su propio `head()` para SEO.
-- Todo el contenido en `src/data/` (`tareas.ts`, `medicacion.ts`, `ejercicios.ts`, `logopedia.ts`, `contactos.ts`) — un solo sitio donde editar.
-- Las tareas se definen con recurrencia (diaria, días concretos de la semana, o fecha puntual) y el calendario las expande por día.
-- Popup con el componente Dialog de shadcn; los vídeos de YouTube se incrustan con `youtube-nocookie` y carga diferida. Cada tarea puede llevar vídeo, texto, o ambos.
-- Estado de "tarea completada" en `localStorage` por fecha, sin datos personales.
-- Sin Lovable Cloud: el resultado es un proyecto que puedes construir y alojar tú (por ejemplo con `bun run build` y servirlo desde tu servidor).
+- Nueva tabla `notas_turno` (fecha, texto, autor opcional) con RLS y GRANT, siguiendo el patrón de las colecciones actuales.
+- "Texto grande" y franjas plegadas se guardan en el navegador; el resto sincronizado en la nube.
+- La búsqueda se construye sobre `src/lib/secciones.ts` (ya normaliza todas las fichas) más teléfonos e información.
+- Barra de "Hoy" y franjas dentro de `src/routes/index.tsx` y `TareaItem.tsx`; sin cambios en el modelo de tareas.
+- Vista imprimible con CSS `@media print` en una ruta `/hoy/imprimir`.
 
-## Aviso
+## Orden sugerido
 
-Añadiré una nota al pie: la web es una ayuda organizativa, no sustituye las indicaciones del equipo médico.
+1. Pantalla "Hoy" (barra de estado, franjas, marcar de un toque, atrasadas)
+2. Búsqueda global + acceso rápido de emergencia
+3. Notas del turno
+4. Legibilidad, navegación móvil e impresión
