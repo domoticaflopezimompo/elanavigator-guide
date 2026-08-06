@@ -574,6 +574,59 @@ function Index() {
         onGuardar={guardar}
       />
 
+      <Dialog open={configAbierta} onOpenChange={setConfigAbierta}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-primary" />
+              Calendario de Google
+            </DialogTitle>
+            <DialogDescription>
+              Activa la sincronización para ver las citas del paciente en la sección Hoy.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="calendar-enabled" className="flex flex-col gap-1">
+                <span>Sincronizar citas</span>
+                <span className="text-xs text-muted-foreground font-normal">
+                  Muestra las citas del calendario junto a las tareas.
+                </span>
+              </Label>
+              <Switch
+                id="calendar-enabled"
+                checked={config.googleCalendarEnabled ?? false}
+                onCheckedChange={(checked) =>
+                  guardarConfig({ ...config, googleCalendarEnabled: checked })
+                }
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="calendar-id">ID del calendario</Label>
+              <Input
+                id="calendar-id"
+                value={config.googleCalendarId ?? "primary"}
+                onChange={(e) =>
+                  guardarConfig({ ...config, googleCalendarId: e.target.value || "primary" })
+                }
+                placeholder="primary"
+              />
+              <p className="text-xs text-muted-foreground">
+                Usa "primary" para el calendario principal de la cuenta conectada.
+              </p>
+            </div>
+
+            {citasError ? (
+              <div className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
+                {citasError}
+              </div>
+            ) : null}
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <p className="border-border text-muted-foreground mt-12 border-t pt-6 text-sm">
         Esta web es una ayuda organizativa para el equipo de cuidados. No sustituye las
         indicaciones del equipo médico.
