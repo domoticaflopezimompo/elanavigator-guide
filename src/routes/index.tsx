@@ -417,12 +417,23 @@ function Index() {
         <div className="space-y-6">
           {FRANJAS.map((franja) => {
             const tareasFranja = delDia.filter((tarea) => tarea.franja === franja.id);
-            if (tareasFranja.length === 0) return null;
+            const citasFranja = citas.filter((cita) => franjaDeHora(cita.horaInicio) === franja.id);
+            const elementos = [
+              ...tareasFranja.map((tarea) => ({ tipo: "tarea" as const, tarea })),
+              ...citasFranja.map((cita) => ({ tipo: "cita" as const, cita })),
+            ].sort((a, b) => {
+              const horaA = a.tipo === "tarea" ? a.tarea.hora : a.cita.horaInicio;
+              const horaB = b.tipo === "tarea" ? b.tarea.hora : b.cita.horaInicio;
+              return (minutosDeHora(horaA) ?? 24 * 60) - (minutosDeHora(horaB) ?? 24 * 60);
+            });
+
+            if (elementos.length === 0) return null;
             const plegada = estaPlegada(franja.id, tareasFranja);
             const hechasFranja = tareasFranja.filter((tarea) =>
               completadas.includes(tarea.id),
             ).length;
             const enCurso = esHoy && franjaActual === franja.id;
+            const totalFranja = tareasFranja.length + citasFranja.length;
 
             return (
               <section
@@ -453,41 +464,48 @@ function Index() {
                     </span>
                   ) : null}
                   <span className="text-muted-foreground ml-auto text-xs">
-                    {hechasFranja}/{tareasFranja.length}
+                    {hechasFranja}/{totalFranja}
                   </span>
                 </button>
                 <div className={`space-y-3 ${plegada ? "hidden" : ""}`}>
-                  {tareasFranja.map((tarea, indice) => (
-                    <TareaItem
-                      key={tarea.id}
-                      tarea={tarea}
-                      hecha={completadas.includes(tarea.id)}
-                      atrasada={estaAtrasada(tarea)}
-                      proxima={proxima?.id === tarea.id}
-                      onAbrir={() => setAbierta(tarea)}
-                      onAlternar={() => alternarConAviso(tarea)}
-                      puedeSubir={indice > 0}
-                      puedeBajar={indice < tareasFranja.length - 1}
-                      onSubir={() =>
-                        indice > 0 && intercambiar(tarea.id, tareasFranja[indice - 1].id)
-                      }
-                      onBajar={() =>
-                        indice < tareasFranja.length - 1 &&
-                        intercambiar(tarea.id, tareasFranja[indice + 1].id)
-                      }
-                      onEditar={() => {
-                        setCreando(false);
-                        setEditando(tarea);
-                      }}
-                      onEliminar={() => eliminar(tarea.id)}
-                    />
-                  ))}
+                  {elementos.map((elemento, indice) =>
+                    elemento.tipo === "tarea" ? (
+                      <TareaItem
+                        key={elemento.tarea.id}
+                        tarea={elemento.tarea}
+                        hecha={completadas.includes(elemento.tarea.id)}
+                        atrasada={estaAtrasada(elemento.tarea)}
+                        proxima={proxima?.id === elemento.tarea.id}
+                        onAbrir={() => setAbierta(elemento.tarea)}
+                        onAlternar={() => alternarConAviso(elemento.tarea)}
+                        puedeSubir={indice > 0}
+                        puedeBajar={indice < elementos.length - 1}
+                        onSubir={() =>
+                          indice > 0 &&
+                          elementos[indice - 1].tipo === "tarea" &&
+                          intercambiar(elemento.tarea.id, elementos[indice - 1].tarea.id)
+                        }
+                        onBajar={() =>
+                          indice < elementos.length - 1 &&
+                          elementos[indice + 1].tipo === "tarea" &&
+                          intercambiar(elemento.tarea.id, elementos[indice + 1].tarea.id)
+                        }
+                        onEditar={() => {
+                          setCreando(false);
+                          setEditando(elemento.tarea);
+                        }}
+                        onEliminar={() => eliminar(elemento.tarea.id)}
+                      />
+                    ) : (
+                      <CitaCalendarioItem key={elemento.cita.id} cita={elemento.cita} />
+                    ),
+                  )}
                 </div>
               </section>
             );
           })}
 
-          {delDia.length === 0 ? (
+          {delDia.length === 0 && citas.length === 0 ? (
             <p className="border-border text-muted-foreground rounded-2xl border border-dashed p-8 text-center">
               No hay tareas programadas para este día.
             </p>
