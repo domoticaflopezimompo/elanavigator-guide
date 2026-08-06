@@ -172,6 +172,41 @@ function Index() {
     return () => clearInterval(id);
   }, []);
 
+  // Cargar citas del calendario de Google cuando esté activado.
+  useEffect(() => {
+    if (!configCargado || !config.googleCalendarEnabled) {
+      setCitas([]);
+      setCitasError(null);
+      return;
+    }
+
+    let activo = true;
+    setCitasCargando(true);
+    setCitasError(null);
+
+    const zonaHoraria = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    void listarCitasDelDia({
+      data: {
+        fecha: claveFecha(seleccionada),
+        calendarId: config.googleCalendarId || "primary",
+        zonaHoraria,
+      },
+    }).then(({ citas, error }) => {
+      if (!activo) return;
+      setCitasCargando(false);
+      if (error) {
+        setCitasError(error);
+        setCitas([]);
+      } else {
+        setCitas(citas);
+      }
+    });
+
+    return () => {
+      activo = false;
+    };
+  }, [seleccionada, config.googleCalendarEnabled, config.googleCalendarId, configCargado]);
+
   const { items, crear, actualizar, eliminar, intercambiar } = useColeccion<Tarea>(
     "tareas",
     tareasIniciales,
