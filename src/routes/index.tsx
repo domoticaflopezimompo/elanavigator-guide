@@ -1,16 +1,21 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { ChevronDown, Clock3, Plus } from "lucide-react";
+import { ChevronDown, Clock3, Plus, Settings, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import { Calendario } from "@/components/Calendario";
 import { TareaItem } from "@/components/TareaItem";
+import { CitaCalendarioItem } from "@/components/CitaCalendarioItem";
 import { FichaDialogo } from "@/components/FichaDialogo";
 import { EditorDialogo, type Campo, type Valores } from "@/components/EditorDialogo";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Progress } from "@/components/ui/progress";
 import { useCompletadas } from "@/hooks/use-completadas";
 import { useColeccion } from "@/hooks/use-coleccion";
+import { useConfiguracion } from "@/hooks/use-configuracion";
 import { tareas as tareasIniciales } from "@/data/tareas";
 import {
   INICIALES,
@@ -23,6 +28,7 @@ import {
   FRANJAS,
   claveFecha,
   esMismoDia,
+  franjaDeHora,
   franjaDeMinutos,
   formatoLargo,
   horaCorta,
@@ -31,6 +37,7 @@ import {
   minutosDeHora,
   tareasDelDia,
 } from "@/lib/agenda";
+import { listarCitasDelDia, type CitaCalendario } from "@/lib/calendar.functions";
 import type { Franja, Tarea } from "@/data/tipos";
 
 const TITULO = "Tareas del día — Cuidados ELA";
