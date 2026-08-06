@@ -468,8 +468,10 @@ function Index() {
                   </span>
                 </button>
                 <div className={`space-y-3 ${plegada ? "hidden" : ""}`}>
-                  {elementos.map((elemento, indice) =>
-                    elemento.tipo === "tarea" ? (
+                  {elementos.map((elemento, indice) => {
+                    const anterior = elementos[indice - 1];
+                    const siguiente = elementos[indice + 1];
+                    return elemento.tipo === "tarea" ? (
                       <TareaItem
                         key={elemento.tarea.id}
                         tarea={elemento.tarea}
@@ -478,17 +480,15 @@ function Index() {
                         proxima={proxima?.id === elemento.tarea.id}
                         onAbrir={() => setAbierta(elemento.tarea)}
                         onAlternar={() => alternarConAviso(elemento.tarea)}
-                        puedeSubir={indice > 0}
-                        puedeBajar={indice < elementos.length - 1}
+                        puedeSubir={indice > 0 && anterior?.tipo === "tarea"}
+                        puedeBajar={indice < elementos.length - 1 && siguiente?.tipo === "tarea"}
                         onSubir={() =>
-                          indice > 0 &&
-                          elementos[indice - 1].tipo === "tarea" &&
-                          intercambiar(elemento.tarea.id, elementos[indice - 1].tarea.id)
+                          anterior?.tipo === "tarea" &&
+                          intercambiar(elemento.tarea.id, anterior.tarea.id)
                         }
                         onBajar={() =>
-                          indice < elementos.length - 1 &&
-                          elementos[indice + 1].tipo === "tarea" &&
-                          intercambiar(elemento.tarea.id, elementos[indice + 1].tarea.id)
+                          siguiente?.tipo === "tarea" &&
+                          intercambiar(elemento.tarea.id, siguiente.tarea.id)
                         }
                         onEditar={() => {
                           setCreando(false);
@@ -498,8 +498,8 @@ function Index() {
                       />
                     ) : (
                       <CitaCalendarioItem key={elemento.cita.id} cita={elemento.cita} />
-                    ),
-                  )}
+                    );
+                  })}
                 </div>
               </section>
             );
