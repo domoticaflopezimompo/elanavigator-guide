@@ -13,6 +13,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Progress } from "@/components/ui/progress";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useCompletadas } from "@/hooks/use-completadas";
 import { useColeccion } from "@/hooks/use-coleccion";
 import { useConfiguracion } from "@/hooks/use-configuracion";
