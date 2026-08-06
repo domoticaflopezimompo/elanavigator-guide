@@ -386,15 +386,25 @@ function Index() {
             ) : null}
           </div>
         </div>
-        <Button
-          onClick={() => {
-            setEditando(null);
-            setCreando(true);
-          }}
-        >
-          <Plus className="h-4 w-4" />
-          Añadir tarea
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setConfigAbierta(true)}
+            aria-label="Configurar calendario"
+          >
+            <Settings className="h-4 w-4" />
+            <span className="hidden sm:inline">Calendario</span>
+          </Button>
+          <Button
+            onClick={() => {
+              setEditando(null);
+              setCreando(true);
+            }}
+          >
+            <Plus className="h-4 w-4" />
+            Añadir tarea
+          </Button>
+        </div>
       </header>
 
       <div className="grid gap-6 md:grid-cols-[320px_1fr] md:items-start">
