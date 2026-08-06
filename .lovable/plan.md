@@ -1,47 +1,59 @@
-# Mejoras de usabilidad y funciones nuevas
+# Sincronizar calendario de Google del paciente
 
-Enfoque: que el día a día se resuelva en menos toques y que lo importante esté visible sin abrir nada. Se mantiene el estilo actual (azul-verde, Manrope) y todas las secciones tal como están.
+## Objetivo
+Leer las citas del calendario de Google del paciente y mostrarlas en la sección **Hoy** junto al resto de tareas, con un color/badge propio de "Cita".
 
-## 1. La pantalla "Hoy" como centro de mando
+## Requisitos previos
+- Conectar el conector **Google Calendar** al proyecto desde Lovable (cuenta del paciente). Esto genera las variables de entorno necesarias para llamar a la API desde el backend.
 
-- **Barra de estado del día**: "X de Y tareas hechas", hora actual y la próxima tarea pendiente destacada ("Ahora: Aspiración de secreciones — 11:00").
-- **Franja actual resaltada**: mañana / mediodía / tarde / noche; la franja en curso aparece abierta y las pasadas se pliegan.
-- **Marcar sin abrir**: casilla grande a la izquierda de cada tarea para completarla de un toque, con deshacer inmediato. Abrir la ficha sigue siendo un toque en el texto.
-- **Tareas atrasadas**: las de horas ya pasadas sin completar se marcan en rojo suave con la etiqueta "Pendiente".
+## Pasos de implementación
 
-## 2. Búsqueda global
+### 1. Conexión con Google Calendar
+- Usar el conector `google_calendar` (ya disponible en el workspace).
+- Enlazar la cuenta de Google del paciente al proyecto para obtener las credenciales de gateway.
+- Guardar el `calendarId` objetivo (por defecto `primary`) en una nueva fila de configuración en Supabase, editable desde ajustes.
 
-Buscador en la cabecera que filtra por título en todas las secciones (medicación, cuidados, ejercicios, logopedia, teléfonos, información) y abre la ficha directamente. Útil cuando un cuidador nuevo no sabe en qué sección está algo.
+### 2. Backend: leer eventos del día
+- Crear una `createServerFn` protegida o pública según el nivel de privacidad deseado que:
+  - Llame al gateway de Lovable: `https://connector-gateway.lovable.dev/google_calendar/calendar/v3/calendars/{calendarId}/events`.
+  - Pase el rango de tiempo del día actual (`timeMin`/`timeMax` en formato ISO).
+  - Devuelva solo los campos necesarios: título, hora de inicio, hora de fin, ubicación, descripción y enlace a Google Calendar.
+- Manejar errores de conexión (credenciales caducadas, calendario no accesible) devolviendo un mensaje claro al frontend.
 
-## 3. Notas del turno
+### 3. Modelo de datos
+- Añadir una tabla `configuracion` (o reutilizar `colecciones` con clave `config`) para guardar:
+  - `google_calendar_id`: ID del calendario (por defecto `primary`).
+  - `google_calendar_enabled`: booleano para activar/desactivar la sincronización.
+- Añadir GRANTs y políticas RLS adecuadas si la tabla es nueva.
 
-Bloque en "Hoy" para escribir observaciones del día (guardadas en la nube, visibles en todos los dispositivos), con fecha y acceso a las de días anteriores. Es lo que ahora se resuelve en papel o por WhatsApp.
+### 4. Sección Hoy: mostrar citas mezcladas con tareas
+- En `src/routes/index.tsx`, al cargar el día actual, combinar:
+  - Las tareas propias de la app (ya existentes).
+  - Las citas de Google Calendar obtenidas vía server fn.
+- Ordenar todas juntas por hora.
+- Renderizar las citas con:
+  - Badge "Cita" con color distintivo (por ejemplo, naranja o violeta).
+  - Hora de inicio y fin.
+  - Título de la cita.
+  - Ubicación si existe.
+  - Enlace directo a Google Calendar para abrir el evento.
+- Las citas no se marcan como completables; son informativas.
 
-## 4. Legibilidad y toques más cómodos
+### 5. Pantalla de ajustes / configuración del calendario
+- Crear una ruta o sección dentro de ajustes (`/ajustes` o similar) con:
+  - Toggle para activar/desactivar Google Calendar.
+  - Campo de texto para indicar el `calendarId` (por defecto `primary`).
+  - Botón "Probar conexión" que llame a la server fn y muestre las próximas citas.
+  - Mensaje de estado si la conexión falla.
 
-- Botón de **texto grande** que aumenta la tipografía de fichas y tareas, recordado por dispositivo.
-- Áreas de pulsación mínimas de 44px; iconos de editar/eliminar algo más separados.
-- Cabecera de navegación con scroll horizontal en móvil en vez de comprimir 9 iconos.
+### 6. Manejo de errores y estados
+- Mostrar un aviso amable en Hoy si:
+  - El calendario no está configurado.
+  - La conexión con Google falla.
+  - No hay citas para hoy.
+- No bloquear el resto de la agenda si Google Calendar no responde.
 
-## 5. Acceso rápido de emergencia
-
-Botón fijo abajo a la derecha con los teléfonos marcados como urgentes (llamada directa), disponible desde cualquier página.
-
-## 6. Hoja del día imprimible
-
-Botón para generar una hoja del día con tareas, horarios y medicación con dosis. Sirve para dejarla en la nevera o para el relevo de cuidador.
-
-## Detalles técnicos
-
-- Nueva tabla `notas_turno` (fecha, texto, autor opcional) con RLS y GRANT, siguiendo el patrón de las colecciones actuales.
-- "Texto grande" y franjas plegadas se guardan en el navegador; el resto sincronizado en la nube.
-- La búsqueda se construye sobre `src/lib/secciones.ts` (ya normaliza todas las fichas) más teléfonos e información.
-- Barra de "Hoy" y franjas dentro de `src/routes/index.tsx` y `TareaItem.tsx`; sin cambios en el modelo de tareas.
-- Vista imprimible con CSS `@media print` en una ruta `/hoy/imprimir`.
-
-## Orden sugerido
-
-1. Pantalla "Hoy" (barra de estado, franjas, marcar de un toque, atrasadas)
-2. Búsqueda global + acceso rápido de emergencia
-3. Notas del turno
-4. Legibilidad, navegación móvil e impresión
+## Notas técnicas
+- Las llamadas a Google Calendar se harán **desde el servidor** a través del gateway de Lovable; nunca desde el navegador.
+- No se almacenarán las citas en base de datos de forma permanente; se leerán bajo demanda para el día actual.
+- El conector es de tipo App connector (cuenta compartida del proyecto), no App User Connector, porque se trata del calendario único del paciente visible para todos los cuidadores.
