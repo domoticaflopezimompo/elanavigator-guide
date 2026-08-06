@@ -159,6 +159,11 @@ function Index() {
   const [creando, setCreando] = useState(false);
   const [ahora, setAhora] = useState<Date | null>(null);
   const [plegadas, setPlegadas] = useState<Record<string, boolean>>({});
+  const [citas, setCitas] = useState<CitaCalendario[]>([]);
+  const [citasCargando, setCitasCargando] = useState(false);
+  const [citasError, setCitasError] = useState<string | null>(null);
+  const [configAbierta, setConfigAbierta] = useState(false);
+  const { config, cargado: configCargado, guardar: guardarConfig } = useConfiguracion();
 
   // Reloj solo en cliente para no romper la hidratación.
   useEffect(() => {
