@@ -1,16 +1,28 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { ChevronDown, Clock3, Plus } from "lucide-react";
+import { ChevronDown, Clock3, Plus, Settings, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import { Calendario } from "@/components/Calendario";
 import { TareaItem } from "@/components/TareaItem";
+import { CitaCalendarioItem } from "@/components/CitaCalendarioItem";
 import { FichaDialogo } from "@/components/FichaDialogo";
 import { EditorDialogo, type Campo, type Valores } from "@/components/EditorDialogo";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Progress } from "@/components/ui/progress";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useCompletadas } from "@/hooks/use-completadas";
 import { useColeccion } from "@/hooks/use-coleccion";
+import { useConfiguracion } from "@/hooks/use-configuracion";
 import { tareas as tareasIniciales } from "@/data/tareas";
 import {
   INICIALES,
@@ -23,6 +35,7 @@ import {
   FRANJAS,
   claveFecha,
   esMismoDia,
+  franjaDeHora,
   franjaDeMinutos,
   formatoLargo,
   horaCorta,
@@ -31,6 +44,7 @@ import {
   minutosDeHora,
   tareasDelDia,
 } from "@/lib/agenda";
+import { listarCitasDelDia, type CitaCalendario } from "@/lib/calendar.functions";
 import type { Franja, Tarea } from "@/data/tipos";
 
 const TITULO = "Tareas del día — Cuidados ELA";
@@ -152,6 +166,11 @@ function Index() {
   const [creando, setCreando] = useState(false);
   const [ahora, setAhora] = useState<Date | null>(null);
   const [plegadas, setPlegadas] = useState<Record<string, boolean>>({});
+  const [citas, setCitas] = useState<CitaCalendario[]>([]);
+  const [citasCargando, setCitasCargando] = useState(false);
+  const [citasError, setCitasError] = useState<string | null>(null);
+  const [configAbierta, setConfigAbierta] = useState(false);
+  const { config, cargado: configCargado, guardar: guardarConfig } = useConfiguracion();
 
   // Reloj solo en cliente para no romper la hidratación.
   useEffect(() => {
@@ -159,6 +178,41 @@ function Index() {
     const id = setInterval(() => setAhora(new Date()), 30_000);
     return () => clearInterval(id);
   }, []);
+
+  // Cargar citas del calendario de Google cuando esté activado.
+  useEffect(() => {
+    if (!configCargado || !config.googleCalendarEnabled) {
+      setCitas([]);
+      setCitasError(null);
+      return;
+    }
+
+    let activo = true;
+    setCitasCargando(true);
+    setCitasError(null);
+
+    const zonaHoraria = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    void listarCitasDelDia({
+      data: {
+        fecha: claveFecha(seleccionada),
+        calendarId: config.googleCalendarId || "primary",
+        zonaHoraria,
+      },
+    }).then(({ citas, error }) => {
+      if (!activo) return;
+      setCitasCargando(false);
+      if (error) {
+        setCitasError(error);
+        setCitas([]);
+      } else {
+        setCitas(citas);
+      }
+    });
+
+    return () => {
+      activo = false;
+    };
+  }, [seleccionada, config.googleCalendarEnabled, config.googleCalendarId, configCargado]);
 
   const { items, crear, actualizar, eliminar, intercambiar } = useColeccion<Tarea>(
     "tareas",
@@ -339,15 +393,25 @@ function Index() {
             ) : null}
           </div>
         </div>
-        <Button
-          onClick={() => {
-            setEditando(null);
-            setCreando(true);
-          }}
-        >
-          <Plus className="h-4 w-4" />
-          Añadir tarea
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setConfigAbierta(true)}
+            aria-label="Configurar calendario"
+          >
+            <Settings className="h-4 w-4" />
+            <span className="hidden sm:inline">Calendario</span>
+          </Button>
+          <Button
+            onClick={() => {
+              setEditando(null);
+              setCreando(true);
+            }}
+          >
+            <Plus className="h-4 w-4" />
+            Añadir tarea
+          </Button>
+        </div>
       </header>
 
       <div className="grid gap-6 md:grid-cols-[320px_1fr] md:items-start">
@@ -370,12 +434,23 @@ function Index() {
         <div className="space-y-6">
           {FRANJAS.map((franja) => {
             const tareasFranja = delDia.filter((tarea) => tarea.franja === franja.id);
-            if (tareasFranja.length === 0) return null;
+            const citasFranja = citas.filter((cita) => franjaDeHora(cita.horaInicio) === franja.id);
+            const elementos = [
+              ...tareasFranja.map((tarea) => ({ tipo: "tarea" as const, tarea })),
+              ...citasFranja.map((cita) => ({ tipo: "cita" as const, cita })),
+            ].sort((a, b) => {
+              const horaA = a.tipo === "tarea" ? a.tarea.hora : a.cita.horaInicio;
+              const horaB = b.tipo === "tarea" ? b.tarea.hora : b.cita.horaInicio;
+              return (minutosDeHora(horaA) ?? 24 * 60) - (minutosDeHora(horaB) ?? 24 * 60);
+            });
+
+            if (elementos.length === 0) return null;
             const plegada = estaPlegada(franja.id, tareasFranja);
             const hechasFranja = tareasFranja.filter((tarea) =>
               completadas.includes(tarea.id),
             ).length;
             const enCurso = esHoy && franjaActual === franja.id;
+            const totalFranja = tareasFranja.length + citasFranja.length;
 
             return (
               <section
@@ -406,41 +481,48 @@ function Index() {
                     </span>
                   ) : null}
                   <span className="text-muted-foreground ml-auto text-xs">
-                    {hechasFranja}/{tareasFranja.length}
+                    {hechasFranja}/{totalFranja}
                   </span>
                 </button>
                 <div className={`space-y-3 ${plegada ? "hidden" : ""}`}>
-                  {tareasFranja.map((tarea, indice) => (
-                    <TareaItem
-                      key={tarea.id}
-                      tarea={tarea}
-                      hecha={completadas.includes(tarea.id)}
-                      atrasada={estaAtrasada(tarea)}
-                      proxima={proxima?.id === tarea.id}
-                      onAbrir={() => setAbierta(tarea)}
-                      onAlternar={() => alternarConAviso(tarea)}
-                      puedeSubir={indice > 0}
-                      puedeBajar={indice < tareasFranja.length - 1}
-                      onSubir={() =>
-                        indice > 0 && intercambiar(tarea.id, tareasFranja[indice - 1].id)
-                      }
-                      onBajar={() =>
-                        indice < tareasFranja.length - 1 &&
-                        intercambiar(tarea.id, tareasFranja[indice + 1].id)
-                      }
-                      onEditar={() => {
-                        setCreando(false);
-                        setEditando(tarea);
-                      }}
-                      onEliminar={() => eliminar(tarea.id)}
-                    />
-                  ))}
+                  {elementos.map((elemento, indice) => {
+                    const anterior = elementos[indice - 1];
+                    const siguiente = elementos[indice + 1];
+                    return elemento.tipo === "tarea" ? (
+                      <TareaItem
+                        key={elemento.tarea.id}
+                        tarea={elemento.tarea}
+                        hecha={completadas.includes(elemento.tarea.id)}
+                        atrasada={estaAtrasada(elemento.tarea)}
+                        proxima={proxima?.id === elemento.tarea.id}
+                        onAbrir={() => setAbierta(elemento.tarea)}
+                        onAlternar={() => alternarConAviso(elemento.tarea)}
+                        puedeSubir={indice > 0 && anterior?.tipo === "tarea"}
+                        puedeBajar={indice < elementos.length - 1 && siguiente?.tipo === "tarea"}
+                        onSubir={() =>
+                          anterior?.tipo === "tarea" &&
+                          intercambiar(elemento.tarea.id, anterior.tarea.id)
+                        }
+                        onBajar={() =>
+                          siguiente?.tipo === "tarea" &&
+                          intercambiar(elemento.tarea.id, siguiente.tarea.id)
+                        }
+                        onEditar={() => {
+                          setCreando(false);
+                          setEditando(elemento.tarea);
+                        }}
+                        onEliminar={() => eliminar(elemento.tarea.id)}
+                      />
+                    ) : (
+                      <CitaCalendarioItem key={elemento.cita.id} cita={elemento.cita} />
+                    );
+                  })}
                 </div>
               </section>
             );
           })}
 
-          {delDia.length === 0 ? (
+          {delDia.length === 0 && citas.length === 0 ? (
             <p className="border-border text-muted-foreground rounded-2xl border border-dashed p-8 text-center">
               No hay tareas programadas para este día.
             </p>
@@ -498,6 +580,59 @@ function Index() {
         }
         onGuardar={guardar}
       />
+
+      <Dialog open={configAbierta} onOpenChange={setConfigAbierta}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-primary" />
+              Calendario de Google
+            </DialogTitle>
+            <DialogDescription>
+              Activa la sincronización para ver las citas del paciente en la sección Hoy.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="calendar-enabled" className="flex flex-col gap-1">
+                <span>Sincronizar citas</span>
+                <span className="text-xs text-muted-foreground font-normal">
+                  Muestra las citas del calendario junto a las tareas.
+                </span>
+              </Label>
+              <Switch
+                id="calendar-enabled"
+                checked={config.googleCalendarEnabled ?? false}
+                onCheckedChange={(checked) =>
+                  guardarConfig({ ...config, googleCalendarEnabled: checked })
+                }
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="calendar-id">ID del calendario</Label>
+              <Input
+                id="calendar-id"
+                value={config.googleCalendarId ?? "primary"}
+                onChange={(e) =>
+                  guardarConfig({ ...config, googleCalendarId: e.target.value || "primary" })
+                }
+                placeholder="primary"
+              />
+              <p className="text-xs text-muted-foreground">
+                Usa "primary" para el calendario principal de la cuenta conectada.
+              </p>
+            </div>
+
+            {citasError ? (
+              <div className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
+                {citasError}
+              </div>
+            ) : null}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <p className="border-border text-muted-foreground mt-12 border-t pt-6 text-sm">
         Esta web es una ayuda organizativa para el equipo de cuidados. No sustituye las

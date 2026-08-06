@@ -84,3 +84,10 @@ const ORDEN_FRANJA: Franja[] = ["manana", "mediodia", "tarde", "noche"];
 export function indiceFranja(franja: Franja): number {
   return ORDEN_FRANJA.indexOf(franja);
 }
+
+/** Devuelve la franja del día a la que pertenece una hora "HH:MM". */
+export function franjaDeHora(hora?: string): Franja {
+  const minutos = minutosDeHora(hora);
+  if (minutos === null) return "manana";
+  return franjaDeMinutos(minutos);
+}
