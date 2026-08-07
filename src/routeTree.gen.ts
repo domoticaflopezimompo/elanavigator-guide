@@ -17,6 +17,7 @@ import { Route as EmergenciasRouteImport } from './routes/emergencias'
 import { Route as EjerciciosRouteImport } from './routes/ejercicios'
 import { Route as CuidadosRouteImport } from './routes/cuidados'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiCalendarEventsRouteImport } from './routes/api/calendar/events'
 
 const TelefonosRoute = TelefonosRouteImport.update({
   id: '/telefonos',
@@ -58,6 +59,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiCalendarEventsRoute = ApiCalendarEventsRouteImport.update({
+  id: '/api/calendar/events',
+  path: '/api/calendar/events',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -68,6 +74,7 @@ export interface FileRoutesByFullPath {
   '/logopedia': typeof LogopediaRoute
   '/medicacion': typeof MedicacionRoute
   '/telefonos': typeof TelefonosRoute
+  '/api/calendar/events': typeof ApiCalendarEventsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -78,6 +85,7 @@ export interface FileRoutesByTo {
   '/logopedia': typeof LogopediaRoute
   '/medicacion': typeof MedicacionRoute
   '/telefonos': typeof TelefonosRoute
+  '/api/calendar/events': typeof ApiCalendarEventsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -89,6 +97,7 @@ export interface FileRoutesById {
   '/logopedia': typeof LogopediaRoute
   '/medicacion': typeof MedicacionRoute
   '/telefonos': typeof TelefonosRoute
+  '/api/calendar/events': typeof ApiCalendarEventsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -101,6 +110,7 @@ export interface FileRouteTypes {
     | '/logopedia'
     | '/medicacion'
     | '/telefonos'
+    | '/api/calendar/events'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -111,6 +121,7 @@ export interface FileRouteTypes {
     | '/logopedia'
     | '/medicacion'
     | '/telefonos'
+    | '/api/calendar/events'
   id:
     | '__root__'
     | '/'
@@ -121,6 +132,7 @@ export interface FileRouteTypes {
     | '/logopedia'
     | '/medicacion'
     | '/telefonos'
+    | '/api/calendar/events'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -132,6 +144,7 @@ export interface RootRouteChildren {
   LogopediaRoute: typeof LogopediaRoute
   MedicacionRoute: typeof MedicacionRoute
   TelefonosRoute: typeof TelefonosRoute
+  ApiCalendarEventsRoute: typeof ApiCalendarEventsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -192,6 +205,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/calendar/events': {
+      id: '/api/calendar/events'
+      path: '/api/calendar/events'
+      fullPath: '/api/calendar/events'
+      preLoaderRoute: typeof ApiCalendarEventsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -204,6 +224,7 @@ const rootRouteChildren: RootRouteChildren = {
   LogopediaRoute: LogopediaRoute,
   MedicacionRoute: MedicacionRoute,
   TelefonosRoute: TelefonosRoute,
+  ApiCalendarEventsRoute: ApiCalendarEventsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

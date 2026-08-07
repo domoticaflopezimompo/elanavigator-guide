@@ -1,5 +1,5 @@
 import { Calendar, MapPin } from "lucide-react";
-import type { CitaCalendario } from "@/lib/calendar.functions";
+import type { CitaCalendario } from "@/lib/calendar";
 
 interface Props {
   cita: CitaCalendario;
