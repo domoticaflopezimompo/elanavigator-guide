@@ -44,7 +44,7 @@ import {
   minutosDeHora,
   tareasDelDia,
 } from "@/lib/agenda";
-import { listarCitasDelDia, type CitaCalendario } from "@/lib/calendar.functions";
+import { listarCitasDelDia, type CitaCalendario } from "@/lib/calendar";
 import type { Franja, Tarea } from "@/data/tipos";
 
 const TITULO = "Tareas del día — Cuidados ELA";
