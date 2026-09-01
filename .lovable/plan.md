@@ -1,34 +1,22 @@
-# Plan: Dependencia googleapis — verificación sin añadir dependencias
+# Hoy: pestañas Paciente y Cuidador
 
-## Decisión
+La pantalla **Hoy** se divide en dos agendas independientes con el mismo diseño y funcionamiento.
 
-**Se mantiene `fetch`, NO se añade `googleapis`.**
+## Paciente
+Exactamente lo que hay hoy: barra de estado del día, franjas, tareas ligadas a fichas de las secciones generales, citas del calendario de Google (badge naranja), marcar/deshacer, reordenar, editar y eliminar.
 
-El código real de `src/lib/google-calendar.server.ts` no usa la biblioteca `googleapis` en ningún punto:
-- `obtenerAccessToken()` hace un `POST` con `fetch` a `https://oauth2.googleapis.com/token` (client_id, client_secret, refresh_token).
-- `obtenerCitasDelDia()` hace un `GET` con `fetch` a `https://www.googleapis.com/calendar/v3/calendars/{id}/events` con el access token en la cabecera `Authorization`.
+## Cuidador
+Misma interfaz y mismas opciones, pero con su propia lista de tareas:
+- Se crean igual que en Paciente: elegir sección general → ficha existente, y luego franja, hora, duración, repetición y días.
+- Lista, orden y contenido totalmente separados de la agenda del paciente.
+- Sin citas del calendario (esas siguen solo en Paciente).
+- Progreso del día, "Ahora", tareas atrasadas y popup de ficha funcionan igual.
 
-Por tanto, `npm list googleapis` devolviendo vacío y su ausencia en `package.json` es **correcto y esperado**, no un error. Añadir la dependencia sería código muerto, justo lo que el requisito 4 prohíbe.
+## Navegación
+Dos pestañas encima del contenido ("Paciente" / "Cuidador"), con el mismo estilo de pestañas que ya usan Ejercicios, Logopedia e Información. El calendario de fechas y la cabecera del día permanecen visibles para ambas.
 
-## Trabajo a realizar (sin cambios de código)
-
-1. **Verificación de ausencia de importaciones** — confirmar con búsqueda que ningún archivo del proyecto importa `googleapis` ni `google-auth-library`.
-2. **Verificación del endpoint local** — confirmar que `src/routes/api/calendar/events.ts` sigue siendo el endpoint `GET /api/calendar/events` y solo llama a `obtenerCitasDelDia` del módulo servidor.
-3. **Verificación de secretos solo en servidor**:
-   - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REFRESH_TOKEN`, `GOOGLE_CALENDAR_ID` y `TZ` solo se leen vía `process.env` dentro de `src/lib/google-calendar.server.ts` (módulo `*.server.ts`, nunca importado por el frontend).
-   - El frontend (`src/lib/calendar.ts`) solo llama a `/api/calendar/events` y no contiene credenciales.
-   - `.env.example` documenta las variables sin valores reales.
-4. **Comprobaciones de build**:
-   - `npm install` (o `bun install` según el gestor del repo)
-   - typecheck
-   - `npm run build`
-5. **Informe final** indicando:
-   - Decisión: fetch mantenido, sin `googleapis`.
-   - Archivos modificados: ninguno (salvo que una comprobación revele un problema real).
-   - Resultados de install / typecheck / build.
-   - Comandos para Ubuntu: ninguno nuevo; basta `git pull && ./deploy.sh` (o `npm install && npm run build && pm2 restart`).
-
-## Notas
-
-- No se hace commit ni push.
-- Si alguna comprobación revela un fallo real, se corrige y se informa.
+## Detalles técnicos
+- Nueva colección `tareas_cuidador` en la tabla `colecciones` (mismo hook `useColeccion`), inicialmente vacía. La colección actual `tareas` sigue siendo la del paciente.
+- `src/routes/index.tsx` se refactoriza: el bloque de agenda (estado del día, franjas, editor, diálogo de ficha) pasa a un componente reutilizable `AgendaDia` con props `clave`, `items`, handlers CRUD y `citas` opcionales. La ruta renderiza las pestañas y una instancia por agenda.
+- Las tareas completadas se guardan por día y por agenda: se amplía `useCompletadas` para aceptar un sufijo (`paciente` / `cuidador`) y no mezclar los checks.
+- Sin cambios en el resto de secciones ni en la integración de Google Calendar.
