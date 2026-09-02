@@ -38,14 +38,18 @@ function campos(
       ...(legado ? [{ valor: "manual", etiqueta: "Contenido actual (sin ficha)" }] : []),
       ...secciones.map((item) => ({ valor: item.clave, etiqueta: item.etiqueta })),
     ];
-    const lista: Campo[] = [
-      {
-        nombre: "seccion",
-        etiqueta: "Sección",
-        tipo: "select",
-        opciones: opcionesSeccion,
-      },
-    ];
+    // Si solo hay una sección posible, no hace falta el desplegable.
+    const lista: Campo[] =
+      opcionesSeccion.length > 1
+        ? [
+            {
+              nombre: "seccion",
+              etiqueta: "Sección",
+              tipo: "select",
+              opciones: opcionesSeccion,
+            },
+          ]
+        : [];
     if (seccion !== "manual") {
       lista.push({
         nombre: "fichaId",
