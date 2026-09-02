@@ -315,15 +315,18 @@ export function AgendaDia({
             </button>
           ) : null}
         </div>
-        <Button
-          onClick={() => {
-            setEditando(null);
-            setCreando(true);
-          }}
-        >
-          <Plus className="h-4 w-4" />
-          Añadir tarea
-        </Button>
+        <div className="flex flex-col items-stretch gap-2 sm:items-end">
+          {accionCrear}
+          <Button
+            onClick={() => {
+              setEditando(null);
+              setCreando(true);
+            }}
+          >
+            <Plus className="h-4 w-4" />
+            Añadir tarea
+          </Button>
+        </div>
       </div>
 
       {FRANJAS.map((franja) => {
@@ -429,7 +432,7 @@ export function AgendaDia({
               <span
                 className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${CATEGORIAS[abierta.categoria].clase}`}
               >
-                {SECCIONES.find((item) => item.clave === abierta.origen?.seccion)?.etiqueta ??
+                {secciones.find((item) => item.clave === abierta.origen?.seccion)?.etiqueta ??
                   CATEGORIAS[abierta.categoria].etiqueta}
               </span>
               {abierta.hora ? (
@@ -457,11 +460,11 @@ export function AgendaDia({
         }}
         titulo={editando ? "Editar tarea" : "Programar tarea"}
         descripcion="Elige una ficha ya creada en una sección y programa cuándo hay que hacerla."
-        campos={campos(fichas, editando !== null && !editando.origen)}
+        campos={campos(fichas, editando !== null && !editando.origen, secciones)}
         valores={
           editando
             ? aValores(editando)
-            : valoresVacios(seleccionada, fichas[SECCIONES[0].clave]?.[0]?.id)
+            : valoresVacios(seleccionada, secciones[0].clave, fichas[secciones[0].clave]?.[0]?.id)
         }
         onGuardar={guardar}
       />
