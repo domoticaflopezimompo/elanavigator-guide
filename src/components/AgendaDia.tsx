@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { ChevronDown, Clock3, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { TareaItem } from "@/components/TareaItem";
@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useCompletadas } from "@/hooks/use-completadas";
 import { useColeccion } from "@/hooks/use-coleccion";
-import { SECCIONES, type FichaSeccion } from "@/lib/secciones";
+import { SECCIONES, type FichaSeccion, type Seccion } from "@/lib/secciones";
 import {
   CATEGORIAS,
   FRANJAS,
@@ -27,21 +27,29 @@ import {
 import type { CitaCalendario } from "@/lib/calendar";
 import type { Franja, Tarea } from "@/data/tipos";
 
-function campos(fichas: Record<string, FichaSeccion[]>, legado: boolean) {
+function campos(
+  fichas: Record<string, FichaSeccion[]>,
+  legado: boolean,
+  secciones: Seccion[],
+) {
   return (estado: Valores): Campo[] => {
-    const seccion = (estado.seccion as string) ?? SECCIONES[0].clave;
+    const seccion = (estado.seccion as string) ?? secciones[0].clave;
     const opcionesSeccion = [
       ...(legado ? [{ valor: "manual", etiqueta: "Contenido actual (sin ficha)" }] : []),
-      ...SECCIONES.map((item) => ({ valor: item.clave, etiqueta: item.etiqueta })),
+      ...secciones.map((item) => ({ valor: item.clave, etiqueta: item.etiqueta })),
     ];
-    const lista: Campo[] = [
-      {
-        nombre: "seccion",
-        etiqueta: "Sección",
-        tipo: "select",
-        opciones: opcionesSeccion,
-      },
-    ];
+    // Si solo hay una sección posible, no hace falta el desplegable.
+    const lista: Campo[] =
+      opcionesSeccion.length > 1
+        ? [
+            {
+              nombre: "seccion",
+              etiqueta: "Sección",
+              tipo: "select",
+              opciones: opcionesSeccion,
+            },
+          ]
+        : [];
     if (seccion !== "manual") {
       lista.push({
         nombre: "fichaId",
@@ -91,9 +99,9 @@ function campos(fichas: Record<string, FichaSeccion[]>, legado: boolean) {
   };
 }
 
-function valoresVacios(fecha: Date, primeraFicha?: string): Valores {
+function valoresVacios(fecha: Date, seccionInicial: string, primeraFicha?: string): Valores {
   return {
-    seccion: SECCIONES[0].clave,
+    seccion: seccionInicial,
     fichaId: primeraFicha ?? "",
     franja: "manana",
     hora: "",
@@ -133,6 +141,10 @@ interface Props {
   hoy: Date;
   ahora: Date | null;
   citas?: CitaCalendario[];
+  /** Secciones elegibles en el desplegable (por defecto todas las generales). */
+  secciones?: Seccion[];
+  /** Botón extra que se muestra encima de "Añadir tarea". */
+  accionCrear?: ReactNode;
 }
 
 export function AgendaDia({
@@ -144,6 +156,8 @@ export function AgendaDia({
   hoy,
   ahora,
   citas = [],
+  secciones = SECCIONES,
+  accionCrear,
 }: Props) {
   const [abierta, setAbierta] = useState<Tarea | null>(null);
   const [editando, setEditando] = useState<Tarea | null>(null);
@@ -305,15 +319,18 @@ export function AgendaDia({
             </button>
           ) : null}
         </div>
-        <Button
-          onClick={() => {
-            setEditando(null);
-            setCreando(true);
-          }}
-        >
-          <Plus className="h-4 w-4" />
-          Añadir tarea
-        </Button>
+        <div className="flex flex-col items-stretch gap-2 sm:items-end">
+          {accionCrear}
+          <Button
+            onClick={() => {
+              setEditando(null);
+              setCreando(true);
+            }}
+          >
+            <Plus className="h-4 w-4" />
+            Añadir tarea
+          </Button>
+        </div>
       </div>
 
       {FRANJAS.map((franja) => {
@@ -419,7 +436,7 @@ export function AgendaDia({
               <span
                 className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${CATEGORIAS[abierta.categoria].clase}`}
               >
-                {SECCIONES.find((item) => item.clave === abierta.origen?.seccion)?.etiqueta ??
+                {secciones.find((item) => item.clave === abierta.origen?.seccion)?.etiqueta ??
                   CATEGORIAS[abierta.categoria].etiqueta}
               </span>
               {abierta.hora ? (
@@ -447,11 +464,11 @@ export function AgendaDia({
         }}
         titulo={editando ? "Editar tarea" : "Programar tarea"}
         descripcion="Elige una ficha ya creada en una sección y programa cuándo hay que hacerla."
-        campos={campos(fichas, editando !== null && !editando.origen)}
+        campos={campos(fichas, editando !== null && !editando.origen, secciones)}
         valores={
           editando
             ? aValores(editando)
-            : valoresVacios(seleccionada, fichas[SECCIONES[0].clave]?.[0]?.id)
+            : valoresVacios(seleccionada, secciones[0].clave, fichas[secciones[0].clave]?.[0]?.id)
         }
         onGuardar={guardar}
       />

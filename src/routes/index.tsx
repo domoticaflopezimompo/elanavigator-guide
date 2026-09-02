@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Calendar, Settings } from "lucide-react";
+import { Calendar, ClipboardPlus, Settings } from "lucide-react";
 import { Calendario } from "@/components/Calendario";
 import { AgendaDia } from "@/components/AgendaDia";
+import { EditorDialogo, type Campo, type Valores } from "@/components/EditorDialogo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -41,6 +42,33 @@ export const Route = createFileRoute("/")({
 
 const tareasCuidadorIniciales: Tarea[] = [];
 
+/** Ficha propia del cuidador: plantilla reutilizable para sus tareas. */
+interface FichaCuidador {
+  id: string;
+  titulo: string;
+  resumen: string;
+  pasos: string[];
+  avisos: string[];
+  duracion?: string;
+  videoYoutube?: string;
+}
+
+const SECCION_CUIDADOR = [{ clave: "cuidador", etiqueta: "Cuidador", categoria: "higiene" as const }];
+
+const CAMPOS_FICHA_CUIDADOR: Campo[] = [
+  { nombre: "titulo", etiqueta: "Título", tipo: "texto", marcador: "Ej.: Revisar el buzón" },
+  { nombre: "resumen", etiqueta: "Resumen", tipo: "area", marcador: "Descripción breve de la tarea" },
+  { nombre: "pasos", etiqueta: "Pasos", tipo: "lista", ayuda: "Un paso por línea." },
+  { nombre: "avisos", etiqueta: "Avisos", tipo: "lista", ayuda: "Un aviso por línea (opcional)." },
+  { nombre: "duracion", etiqueta: "Duración", tipo: "texto", marcador: "15 min" },
+  {
+    nombre: "videoYoutube",
+    etiqueta: "Vídeo de YouTube (ID)",
+    tipo: "texto",
+    marcador: "Solo el ID, no la URL completa",
+  },
+];
+
 function Index() {
   const hoy = useMemo(() => new Date(), []);
   const [seleccionada, setSeleccionada] = useState<Date>(hoy);
@@ -49,6 +77,7 @@ function Index() {
   const [citas, setCitas] = useState<CitaCalendario[]>([]);
   const [citasError, setCitasError] = useState<string | null>(null);
   const [configAbierta, setConfigAbierta] = useState(false);
+  const [creandoFichaCuidador, setCreandoFichaCuidador] = useState(false);
   const { config, cargado: configCargado, guardar: guardarConfig } = useConfiguracion();
 
   // Reloj solo en cliente para no romper la hidratación.
@@ -118,6 +147,29 @@ function Index() {
     [colMedicacion.items, colCuidados.items, colEjercicios.items, colLogopedia.items],
   );
 
+  // Fichas propias del cuidador: solo ellas aparecen en el desplegable de su agenda.
+  const colFichasCuidador = useColeccion<FichaCuidador>("fichas_cuidador", []);
+  const fichasCuidador: Record<string, FichaSeccion[]> = useMemo(
+    () => ({
+      cuidador: colFichasCuidador.items.map((ficha) => ({ ...ficha, categoria: "higiene" as const })),
+    }),
+    [colFichasCuidador.items],
+  );
+
+  const guardarFichaCuidador = (valores: Valores) => {
+    const titulo = (valores.titulo as string).trim();
+    if (!titulo) return;
+    const limpiar = (lista: string[]) => lista.map((linea) => linea.trim()).filter(Boolean);
+    colFichasCuidador.crear({
+      titulo,
+      resumen: (valores.resumen as string).trim(),
+      pasos: limpiar((valores.pasos as string[]) ?? []),
+      avisos: limpiar((valores.avisos as string[]) ?? []),
+      duracion: (valores.duracion as string).trim() || undefined,
+      videoYoutube: (valores.videoYoutube as string).trim() || undefined,
+    });
+  };
+
   return (
     <main className="mx-auto max-w-7xl px-4 pt-6 pb-28 md:px-6 md:pb-16">
       <header className="mb-6 flex flex-wrap items-start justify-between gap-4">
@@ -180,7 +232,14 @@ function Index() {
               coleccion="tareas_cuidador"
               iniciales={tareasCuidadorIniciales}
               sufijoCompletadas="cuidador"
-              fichas={fichas}
+              fichas={fichasCuidador}
+              secciones={SECCION_CUIDADOR}
+              accionCrear={
+                <Button variant="outline" onClick={() => setCreandoFichaCuidador(true)}>
+                  <ClipboardPlus className="h-4 w-4" />
+                  Crear tarea
+                </Button>
+              }
               seleccionada={seleccionada}
               hoy={hoy}
               ahora={ahora}
@@ -188,6 +247,16 @@ function Index() {
           </TabsContent>
         </Tabs>
       </div>
+
+      <EditorDialogo
+        abierto={creandoFichaCuidador}
+        onOpenChange={setCreandoFichaCuidador}
+        titulo="Crear tarea del cuidador"
+        descripcion="Crea una tarea propia del cuidador. Después podrás programarla con «Añadir tarea»."
+        campos={CAMPOS_FICHA_CUIDADOR}
+        valores={{ titulo: "", resumen: "", pasos: [], avisos: [], duracion: "", videoYoutube: "" }}
+        onGuardar={guardarFichaCuidador}
+      />
 
       <Dialog open={configAbierta} onOpenChange={setConfigAbierta}>
         <DialogContent className="sm:max-w-md">
