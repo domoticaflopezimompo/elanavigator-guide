@@ -232,7 +232,14 @@ function Index() {
               coleccion="tareas_cuidador"
               iniciales={tareasCuidadorIniciales}
               sufijoCompletadas="cuidador"
-              fichas={fichas}
+              fichas={fichasCuidador}
+              secciones={SECCION_CUIDADOR}
+              accionCrear={
+                <Button variant="outline" onClick={() => setCreandoFichaCuidador(true)}>
+                  <ClipboardPlus className="h-4 w-4" />
+                  Crear tarea
+                </Button>
+              }
               seleccionada={seleccionada}
               hoy={hoy}
               ahora={ahora}
@@ -240,6 +247,16 @@ function Index() {
           </TabsContent>
         </Tabs>
       </div>
+
+      <EditorDialogo
+        abierto={creandoFichaCuidador}
+        onOpenChange={setCreandoFichaCuidador}
+        titulo="Crear tarea del cuidador"
+        descripcion="Crea una tarea propia del cuidador. Después podrás programarla con «Añadir tarea»."
+        campos={CAMPOS_FICHA_CUIDADOR}
+        valores={{ titulo: "", resumen: "", pasos: [], avisos: [], duracion: "", videoYoutube: "" }}
+        onGuardar={guardarFichaCuidador}
+      />
 
       <Dialog open={configAbierta} onOpenChange={setConfigAbierta}>
         <DialogContent className="sm:max-w-md">
