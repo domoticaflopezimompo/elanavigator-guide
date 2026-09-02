@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { ChevronDown, Clock3, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { TareaItem } from "@/components/TareaItem";
@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useCompletadas } from "@/hooks/use-completadas";
 import { useColeccion } from "@/hooks/use-coleccion";
-import { SECCIONES, type FichaSeccion } from "@/lib/secciones";
+import { SECCIONES, type FichaSeccion, type Seccion } from "@/lib/secciones";
 import {
   CATEGORIAS,
   FRANJAS,
@@ -27,12 +27,16 @@ import {
 import type { CitaCalendario } from "@/lib/calendar";
 import type { Franja, Tarea } from "@/data/tipos";
 
-function campos(fichas: Record<string, FichaSeccion[]>, legado: boolean) {
+function campos(
+  fichas: Record<string, FichaSeccion[]>,
+  legado: boolean,
+  secciones: Seccion[],
+) {
   return (estado: Valores): Campo[] => {
-    const seccion = (estado.seccion as string) ?? SECCIONES[0].clave;
+    const seccion = (estado.seccion as string) ?? secciones[0].clave;
     const opcionesSeccion = [
       ...(legado ? [{ valor: "manual", etiqueta: "Contenido actual (sin ficha)" }] : []),
-      ...SECCIONES.map((item) => ({ valor: item.clave, etiqueta: item.etiqueta })),
+      ...secciones.map((item) => ({ valor: item.clave, etiqueta: item.etiqueta })),
     ];
     const lista: Campo[] = [
       {
@@ -91,9 +95,9 @@ function campos(fichas: Record<string, FichaSeccion[]>, legado: boolean) {
   };
 }
 
-function valoresVacios(fecha: Date, primeraFicha?: string): Valores {
+function valoresVacios(fecha: Date, seccionInicial: string, primeraFicha?: string): Valores {
   return {
-    seccion: SECCIONES[0].clave,
+    seccion: seccionInicial,
     fichaId: primeraFicha ?? "",
     franja: "manana",
     hora: "",
@@ -133,6 +137,10 @@ interface Props {
   hoy: Date;
   ahora: Date | null;
   citas?: CitaCalendario[];
+  /** Secciones elegibles en el desplegable (por defecto todas las generales). */
+  secciones?: Seccion[];
+  /** Botón extra que se muestra encima de "Añadir tarea". */
+  accionCrear?: ReactNode;
 }
 
 export function AgendaDia({
@@ -144,6 +152,8 @@ export function AgendaDia({
   hoy,
   ahora,
   citas = [],
+  secciones = SECCIONES,
+  accionCrear,
 }: Props) {
   const [abierta, setAbierta] = useState<Tarea | null>(null);
   const [editando, setEditando] = useState<Tarea | null>(null);
