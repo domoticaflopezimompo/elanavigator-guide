@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Calendar, ClipboardPlus, Settings } from "lucide-react";
+import { Calendar, ClipboardPlus, Pencil, Settings } from "lucide-react";
 import { Calendario } from "@/components/Calendario";
 import { AgendaDia } from "@/components/AgendaDia";
 import { EditorDialogo, type Campo, type Valores } from "@/components/EditorDialogo";
@@ -78,6 +78,8 @@ function Index() {
   const [citasError, setCitasError] = useState<string | null>(null);
   const [configAbierta, setConfigAbierta] = useState(false);
   const [creandoFichaCuidador, setCreandoFichaCuidador] = useState(false);
+  const [eligiendoFicha, setEligiendoFicha] = useState(false);
+  const [editandoFicha, setEditandoFicha] = useState<FichaCuidador | null>(null);
   const { config, cargado: configCargado, guardar: guardarConfig } = useConfiguracion();
 
   // Reloj solo en cliente para no romper la hidratación.
@@ -156,18 +158,30 @@ function Index() {
     [colFichasCuidador.items],
   );
 
-  const guardarFichaCuidador = (valores: Valores) => {
-    const titulo = (valores.titulo as string).trim();
-    if (!titulo) return;
+  const datosFichaCuidador = (valores: Valores) => {
     const limpiar = (lista: string[]) => lista.map((linea) => linea.trim()).filter(Boolean);
-    colFichasCuidador.crear({
-      titulo,
+    return {
+      titulo: (valores.titulo as string).trim(),
       resumen: (valores.resumen as string).trim(),
       pasos: limpiar((valores.pasos as string[]) ?? []),
       avisos: limpiar((valores.avisos as string[]) ?? []),
       duracion: (valores.duracion as string).trim() || undefined,
       videoYoutube: (valores.videoYoutube as string).trim() || undefined,
-    });
+    };
+  };
+
+  const guardarFichaCuidador = (valores: Valores) => {
+    const datos = datosFichaCuidador(valores);
+    if (!datos.titulo) return;
+    colFichasCuidador.crear(datos);
+  };
+
+  const guardarEdicionFichaCuidador = (valores: Valores) => {
+    if (!editandoFicha) return;
+    const datos = datosFichaCuidador(valores);
+    if (!datos.titulo) return;
+    colFichasCuidador.actualizar({ ...editandoFicha, ...datos });
+    setEditandoFicha(null);
   };
 
   return (
