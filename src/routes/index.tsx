@@ -248,11 +248,22 @@ function Index() {
               sufijoCompletadas="cuidador"
               fichas={fichasCuidador}
               secciones={SECCION_CUIDADOR}
+              etiquetaTareas={{ texto: "Cuidador", clase: "bg-primary/10 text-primary" }}
               accionCrear={
-                <Button variant="outline" onClick={() => setCreandoFichaCuidador(true)}>
-                  <ClipboardPlus className="h-4 w-4" />
-                  Crear tarea
-                </Button>
+                <>
+                  <Button variant="outline" onClick={() => setCreandoFichaCuidador(true)}>
+                    <ClipboardPlus className="h-4 w-4" />
+                    Crear tarea
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setEligiendoFicha(true)}
+                    disabled={colFichasCuidador.items.length === 0}
+                  >
+                    <Pencil className="h-4 w-4" />
+                    Editar tarea
+                  </Button>
+                </>
               }
               seleccionada={seleccionada}
               hoy={hoy}
@@ -270,6 +281,56 @@ function Index() {
         campos={CAMPOS_FICHA_CUIDADOR}
         valores={{ titulo: "", resumen: "", pasos: [], avisos: [], duracion: "", videoYoutube: "" }}
         onGuardar={guardarFichaCuidador}
+      />
+
+      <Dialog open={eligiendoFicha} onOpenChange={setEligiendoFicha}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Editar tarea del cuidador</DialogTitle>
+            <DialogDescription>Elige la tarea que quieres editar.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 py-2">
+            {colFichasCuidador.items.map((ficha) => (
+              <button
+                key={ficha.id}
+                type="button"
+                onClick={() => {
+                  setEligiendoFicha(false);
+                  setEditandoFicha(ficha);
+                }}
+                className="border-border hover:border-primary/40 hover:bg-primary/5 focus-visible:ring-ring w-full rounded-xl border px-4 py-3 text-left focus-visible:ring-2 focus-visible:outline-none"
+              >
+                <p className="font-semibold">{ficha.titulo}</p>
+                {ficha.resumen ? (
+                  <p className="text-muted-foreground mt-0.5 line-clamp-2 text-sm">
+                    {ficha.resumen}
+                  </p>
+                ) : null}
+              </button>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <EditorDialogo
+        abierto={editandoFicha !== null}
+        onOpenChange={(valor) => !valor && setEditandoFicha(null)}
+        titulo="Editar tarea del cuidador"
+        descripcion="Modifica la tarea y guarda los cambios."
+        campos={CAMPOS_FICHA_CUIDADOR}
+        valores={
+          editandoFicha
+            ? {
+                titulo: editandoFicha.titulo,
+                resumen: editandoFicha.resumen,
+                pasos: editandoFicha.pasos,
+                avisos: editandoFicha.avisos,
+                duracion: editandoFicha.duracion ?? "",
+                videoYoutube: editandoFicha.videoYoutube ?? "",
+              }
+            : { titulo: "", resumen: "", pasos: [], avisos: [], duracion: "", videoYoutube: "" }
+        }
+        onGuardar={guardarEdicionFichaCuidador}
       />
 
       <Dialog open={configAbierta} onOpenChange={setConfigAbierta}>
