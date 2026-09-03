@@ -145,6 +145,8 @@ interface Props {
   secciones?: Seccion[];
   /** Botón extra que se muestra encima de "Añadir tarea". */
   accionCrear?: ReactNode;
+  /** Etiqueta que sustituye a la de la categoría en cada tarea. */
+  etiquetaTareas?: { texto: string; clase: string };
 }
 
 export function AgendaDia({
@@ -158,6 +160,7 @@ export function AgendaDia({
   citas = [],
   secciones = SECCIONES,
   accionCrear,
+  etiquetaTareas,
 }: Props) {
   const [abierta, setAbierta] = useState<Tarea | null>(null);
   const [editando, setEditando] = useState<Tarea | null>(null);
@@ -384,10 +387,11 @@ export function AgendaDia({
                 const anterior = elementos[indice - 1];
                 const siguiente = elementos[indice + 1];
                 return elemento.tipo === "tarea" ? (
-                  <TareaItem
-                    key={elemento.tarea.id}
-                    tarea={elemento.tarea}
-                    hecha={completadas.includes(elemento.tarea.id)}
+                   <TareaItem
+                     key={elemento.tarea.id}
+                     tarea={elemento.tarea}
+                     etiqueta={etiquetaTareas}
+                     hecha={completadas.includes(elemento.tarea.id)}
                     atrasada={estaAtrasada(elemento.tarea)}
                     proxima={proxima?.id === elemento.tarea.id}
                     onAbrir={() => setAbierta(elemento.tarea)}

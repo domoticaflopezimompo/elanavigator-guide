@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Calendar, ClipboardPlus, Settings } from "lucide-react";
+import { Calendar, ClipboardPlus, Pencil, Settings } from "lucide-react";
 import { Calendario } from "@/components/Calendario";
 import { AgendaDia } from "@/components/AgendaDia";
 import { EditorDialogo, type Campo, type Valores } from "@/components/EditorDialogo";
@@ -78,6 +78,8 @@ function Index() {
   const [citasError, setCitasError] = useState<string | null>(null);
   const [configAbierta, setConfigAbierta] = useState(false);
   const [creandoFichaCuidador, setCreandoFichaCuidador] = useState(false);
+  const [eligiendoFicha, setEligiendoFicha] = useState(false);
+  const [editandoFicha, setEditandoFicha] = useState<FichaCuidador | null>(null);
   const { config, cargado: configCargado, guardar: guardarConfig } = useConfiguracion();
 
   // Reloj solo en cliente para no romper la hidratación.
@@ -156,18 +158,30 @@ function Index() {
     [colFichasCuidador.items],
   );
 
-  const guardarFichaCuidador = (valores: Valores) => {
-    const titulo = (valores.titulo as string).trim();
-    if (!titulo) return;
+  const datosFichaCuidador = (valores: Valores) => {
     const limpiar = (lista: string[]) => lista.map((linea) => linea.trim()).filter(Boolean);
-    colFichasCuidador.crear({
-      titulo,
+    return {
+      titulo: (valores.titulo as string).trim(),
       resumen: (valores.resumen as string).trim(),
       pasos: limpiar((valores.pasos as string[]) ?? []),
       avisos: limpiar((valores.avisos as string[]) ?? []),
       duracion: (valores.duracion as string).trim() || undefined,
       videoYoutube: (valores.videoYoutube as string).trim() || undefined,
-    });
+    };
+  };
+
+  const guardarFichaCuidador = (valores: Valores) => {
+    const datos = datosFichaCuidador(valores);
+    if (!datos.titulo) return;
+    colFichasCuidador.crear(datos);
+  };
+
+  const guardarEdicionFichaCuidador = (valores: Valores) => {
+    if (!editandoFicha) return;
+    const datos = datosFichaCuidador(valores);
+    if (!datos.titulo) return;
+    colFichasCuidador.actualizar({ ...editandoFicha, ...datos });
+    setEditandoFicha(null);
   };
 
   return (
@@ -234,11 +248,22 @@ function Index() {
               sufijoCompletadas="cuidador"
               fichas={fichasCuidador}
               secciones={SECCION_CUIDADOR}
+              etiquetaTareas={{ texto: "Cuidador", clase: "bg-primary/10 text-primary" }}
               accionCrear={
-                <Button variant="outline" onClick={() => setCreandoFichaCuidador(true)}>
-                  <ClipboardPlus className="h-4 w-4" />
-                  Crear tarea
-                </Button>
+                <>
+                  <Button variant="outline" onClick={() => setCreandoFichaCuidador(true)}>
+                    <ClipboardPlus className="h-4 w-4" />
+                    Crear tarea
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setEligiendoFicha(true)}
+                    disabled={colFichasCuidador.items.length === 0}
+                  >
+                    <Pencil className="h-4 w-4" />
+                    Editar tarea
+                  </Button>
+                </>
               }
               seleccionada={seleccionada}
               hoy={hoy}
@@ -256,6 +281,56 @@ function Index() {
         campos={CAMPOS_FICHA_CUIDADOR}
         valores={{ titulo: "", resumen: "", pasos: [], avisos: [], duracion: "", videoYoutube: "" }}
         onGuardar={guardarFichaCuidador}
+      />
+
+      <Dialog open={eligiendoFicha} onOpenChange={setEligiendoFicha}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Editar tarea del cuidador</DialogTitle>
+            <DialogDescription>Elige la tarea que quieres editar.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 py-2">
+            {colFichasCuidador.items.map((ficha) => (
+              <button
+                key={ficha.id}
+                type="button"
+                onClick={() => {
+                  setEligiendoFicha(false);
+                  setEditandoFicha(ficha);
+                }}
+                className="border-border hover:border-primary/40 hover:bg-primary/5 focus-visible:ring-ring w-full rounded-xl border px-4 py-3 text-left focus-visible:ring-2 focus-visible:outline-none"
+              >
+                <p className="font-semibold">{ficha.titulo}</p>
+                {ficha.resumen ? (
+                  <p className="text-muted-foreground mt-0.5 line-clamp-2 text-sm">
+                    {ficha.resumen}
+                  </p>
+                ) : null}
+              </button>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <EditorDialogo
+        abierto={editandoFicha !== null}
+        onOpenChange={(valor) => !valor && setEditandoFicha(null)}
+        titulo="Editar tarea del cuidador"
+        descripcion="Modifica la tarea y guarda los cambios."
+        campos={CAMPOS_FICHA_CUIDADOR}
+        valores={
+          editandoFicha
+            ? {
+                titulo: editandoFicha.titulo,
+                resumen: editandoFicha.resumen,
+                pasos: editandoFicha.pasos,
+                avisos: editandoFicha.avisos,
+                duracion: editandoFicha.duracion ?? "",
+                videoYoutube: editandoFicha.videoYoutube ?? "",
+              }
+            : { titulo: "", resumen: "", pasos: [], avisos: [], duracion: "", videoYoutube: "" }
+        }
+        onGuardar={guardarEdicionFichaCuidador}
       />
 
       <Dialog open={configAbierta} onOpenChange={setConfigAbierta}>
