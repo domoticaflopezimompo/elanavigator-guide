@@ -25,6 +25,7 @@ interface Props {
 export function TareaItem({
   tarea,
   hecha,
+  etiqueta,
   atrasada,
   proxima,
   onAbrir,
@@ -78,8 +79,10 @@ export function TareaItem({
         className="flex-1 py-4 pr-4 pl-2 text-left focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
       >
         <div className="flex flex-wrap items-center gap-2">
-          <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${categoria.clase}`}>
-            {categoria.etiqueta}
+          <span
+            className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${etiqueta?.clase ?? categoria.clase}`}
+          >
+            {etiqueta?.texto ?? categoria.etiqueta}
           </span>
           {tarea.hora ? (
             <span className="flex items-center gap-1 text-xs text-muted-foreground">
