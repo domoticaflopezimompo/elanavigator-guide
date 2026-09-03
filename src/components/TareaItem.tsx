@@ -6,6 +6,8 @@ import type { Tarea } from "@/data/tipos";
 interface Props {
   tarea: Tarea;
   hecha: boolean;
+  /** Etiqueta que sustituye a la de la categoría (p. ej. «Cuidador»). */
+  etiqueta?: { texto: string; clase: string };
   /** Hora ya pasada y sin completar. */
   atrasada?: boolean;
   /** Siguiente tarea pendiente del día. */

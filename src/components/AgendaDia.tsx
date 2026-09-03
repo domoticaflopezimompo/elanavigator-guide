@@ -145,6 +145,8 @@ interface Props {
   secciones?: Seccion[];
   /** Botón extra que se muestra encima de "Añadir tarea". */
   accionCrear?: ReactNode;
+  /** Etiqueta que sustituye a la de la categoría en cada tarea. */
+  etiquetaTareas?: { texto: string; clase: string };
 }
 
 export function AgendaDia({
