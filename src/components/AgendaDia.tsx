@@ -375,36 +375,29 @@ export function AgendaDia({
               </span>
             </button>
             <div className={`space-y-3 ${plegada ? "hidden" : ""}`}>
-              {elementos.map((elemento, indice) => {
-                const anterior = elementos[indice - 1];
-                const siguiente = elementos[indice + 1];
-                return elemento.tipo === "tarea" ? (
-                   <TareaItem
-                     key={elemento.tarea.id}
-                     tarea={elemento.tarea}
-                     etiqueta={etiquetaTareas}
-                     hecha={completadas.includes(elemento.tarea.id)}
-                    atrasada={estaAtrasada(elemento.tarea)}
-                    proxima={proxima?.id === elemento.tarea.id}
-                    onAbrir={() => setAbierta(elemento.tarea)}
-                    onAlternar={() => alternarConAviso(elemento.tarea)}
-                    puedeSubir={indice > 0 && anterior?.tipo === "tarea"}
-                    puedeBajar={indice < elementos.length - 1 && siguiente?.tipo === "tarea"}
-                    onSubir={() =>
-                      anterior?.tipo === "tarea" && intercambiar(elemento.tarea.id, anterior.tarea.id)
-                    }
-                    onBajar={() =>
-                      siguiente?.tipo === "tarea" &&
-                      intercambiar(elemento.tarea.id, siguiente.tarea.id)
-                    }
+              {tareasFranja.map((tarea, indice) => {
+                const anterior = tareasFranja[indice - 1];
+                const siguiente = tareasFranja[indice + 1];
+                return (
+                  <TareaItem
+                    key={tarea.id}
+                    tarea={tarea}
+                    etiqueta={etiquetaTareas}
+                    hecha={completadas.includes(tarea.id)}
+                    atrasada={estaAtrasada(tarea)}
+                    proxima={proxima?.id === tarea.id}
+                    onAbrir={() => setAbierta(tarea)}
+                    onAlternar={() => alternarConAviso(tarea)}
+                    puedeSubir={indice > 0}
+                    puedeBajar={indice < tareasFranja.length - 1}
+                    onSubir={() => anterior && intercambiar(tarea.id, anterior.id)}
+                    onBajar={() => siguiente && intercambiar(tarea.id, siguiente.id)}
                     onEditar={() => {
                       setCreando(false);
-                      setEditando(elemento.tarea);
+                      setEditando(tarea);
                     }}
-                    onEliminar={() => eliminar(elemento.tarea.id)}
+                    onEliminar={() => eliminar(tarea.id)}
                   />
-                ) : (
-                  <CitaCalendarioItem key={elemento.cita.id} cita={elemento.cita} />
                 );
               })}
             </div>
@@ -412,7 +405,7 @@ export function AgendaDia({
         );
       })}
 
-      {delDia.length === 0 && citas.length === 0 ? (
+      {delDia.length === 0 ? (
         <p className="border-border text-muted-foreground rounded-2xl border border-dashed p-8 text-center">
           No hay tareas programadas para este día.
         </p>
