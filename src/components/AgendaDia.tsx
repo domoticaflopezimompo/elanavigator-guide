@@ -2,7 +2,6 @@ import { useMemo, useState, type ReactNode } from "react";
 import { ChevronDown, Clock3, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { TareaItem } from "@/components/TareaItem";
-import { CitaCalendarioItem } from "@/components/CitaCalendarioItem";
 import { FichaDialogo } from "@/components/FichaDialogo";
 import { EditorDialogo, type Campo, type Valores } from "@/components/EditorDialogo";
 import { Badge } from "@/components/ui/badge";
@@ -16,7 +15,6 @@ import {
   FRANJAS,
   claveFecha,
   esMismoDia,
-  franjaDeHora,
   franjaDeMinutos,
   horaCorta,
   indiceFranja,
@@ -24,7 +22,6 @@ import {
   minutosDeHora,
   tareasDelDia,
 } from "@/lib/agenda";
-import type { CitaCalendario } from "@/lib/calendar";
 import type { Franja, Tarea } from "@/data/tipos";
 
 function campos(
