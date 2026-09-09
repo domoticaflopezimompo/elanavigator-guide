@@ -69,13 +69,9 @@ function Index() {
   const [seleccionada, setSeleccionada] = useState<Date>(hoy);
   const [mes, setMes] = useState<Date>(new Date(hoy.getFullYear(), hoy.getMonth(), 1));
   const [ahora, setAhora] = useState<Date | null>(null);
-  const [citas, setCitas] = useState<CitaCalendario[]>([]);
-  const [citasError, setCitasError] = useState<string | null>(null);
-  const [configAbierta, setConfigAbierta] = useState(false);
   const [creandoFichaCuidador, setCreandoFichaCuidador] = useState(false);
   const [eligiendoFicha, setEligiendoFicha] = useState(false);
   const [editandoFicha, setEditandoFicha] = useState<FichaCuidador | null>(null);
-  const { config, cargado: configCargado, guardar: guardarConfig } = useConfiguracion();
 
   // Reloj solo en cliente para no romper la hidratación.
   useEffect(() => {
@@ -84,38 +80,6 @@ function Index() {
     return () => clearInterval(id);
   }, []);
 
-  // Cargar citas del calendario de Google cuando esté activado (solo Paciente).
-  useEffect(() => {
-    if (!configCargado || !config.googleCalendarEnabled) {
-      setCitas([]);
-      setCitasError(null);
-      return;
-    }
-
-    let activo = true;
-    setCitasError(null);
-
-    const zonaHoraria = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    void listarCitasDelDia({
-      data: {
-        fecha: claveFecha(seleccionada),
-        calendarId: config.googleCalendarId || "primary",
-        zonaHoraria,
-      },
-    }).then(({ citas, error }) => {
-      if (!activo) return;
-      if (error) {
-        setCitasError(error);
-        setCitas([]);
-      } else {
-        setCitas(citas);
-      }
-    });
-
-    return () => {
-      activo = false;
-    };
-  }, [seleccionada, config.googleCalendarEnabled, config.googleCalendarId, configCargado]);
 
   const colMedicacion = useColeccion<{ id: string }>(
     "medicacion",
