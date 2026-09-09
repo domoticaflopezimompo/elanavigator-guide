@@ -1,13 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Calendar, ClipboardPlus, Pencil, Settings } from "lucide-react";
+import { ClipboardPlus, Pencil } from "lucide-react";
 import { Calendario } from "@/components/Calendario";
 import { AgendaDia } from "@/components/AgendaDia";
 import { EditorDialogo, type Campo, type Valores } from "@/components/EditorDialogo";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
@@ -17,11 +14,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useColeccion } from "@/hooks/use-coleccion";
-import { useConfiguracion } from "@/hooks/use-configuracion";
 import { tareas as tareasIniciales } from "@/data/tareas";
 import { INICIALES, normalizar, type FichaSeccion } from "@/lib/secciones";
-import { claveFecha, esMismoDia, formatoLargo } from "@/lib/agenda";
-import { listarCitasDelDia, type CitaCalendario } from "@/lib/calendar";
+import { esMismoDia, formatoLargo } from "@/lib/agenda";
 import type { Tarea } from "@/data/tipos";
 
 const TITULO = "Tareas del día — Cuidados ELA";
