@@ -137,7 +137,7 @@ interface Props {
   seleccionada: Date;
   hoy: Date;
   ahora: Date | null;
-  citas?: CitaCalendario[];
+  
   /** Secciones elegibles en el desplegable (por defecto todas las generales). */
   secciones?: Seccion[];
   /** Botón extra que se muestra encima de "Añadir tarea". */
@@ -154,7 +154,7 @@ export function AgendaDia({
   seleccionada,
   hoy,
   ahora,
-  citas = [],
+  
   secciones = SECCIONES,
   accionCrear,
   etiquetaTareas,
