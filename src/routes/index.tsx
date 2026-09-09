@@ -154,16 +154,6 @@ function Index() {
             {formatoLargo(seleccionada)}
           </h1>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Button
-            variant="outline"
-            onClick={() => setConfigAbierta(true)}
-            aria-label="Configurar calendario"
-          >
-            <Settings className="h-4 w-4" />
-            <span className="hidden sm:inline">Calendario</span>
-          </Button>
-        </div>
       </header>
 
       <div className="grid gap-6 md:grid-cols-[320px_1fr] md:items-start">
@@ -197,7 +187,6 @@ function Index() {
               seleccionada={seleccionada}
               hoy={hoy}
               ahora={ahora}
-              citas={citas}
             />
           </TabsContent>
           <TabsContent value="cuidador" className="mt-6">
