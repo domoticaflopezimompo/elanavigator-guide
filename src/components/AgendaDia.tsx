@@ -334,22 +334,17 @@ export function AgendaDia({
       </div>
 
       {FRANJAS.map((franja) => {
-        const tareasFranja = delDia.filter((tarea) => tarea.franja === franja.id);
-        const citasFranja = citas.filter((cita) => franjaDeHora(cita.horaInicio) === franja.id);
-        const elementos = [
-          ...tareasFranja.map((tarea) => ({ tipo: "tarea" as const, tarea })),
-          ...citasFranja.map((cita) => ({ tipo: "cita" as const, cita })),
-        ].sort((a, b) => {
-          const horaA = a.tipo === "tarea" ? a.tarea.hora : a.cita.horaInicio;
-          const horaB = b.tipo === "tarea" ? b.tarea.hora : b.cita.horaInicio;
-          return (minutosDeHora(horaA) ?? 24 * 60) - (minutosDeHora(horaB) ?? 24 * 60);
-        });
+        const tareasFranja = delDia
+          .filter((tarea) => tarea.franja === franja.id)
+          .sort(
+            (a, b) => (minutosDeHora(a.hora) ?? 24 * 60) - (minutosDeHora(b.hora) ?? 24 * 60),
+          );
 
-        if (elementos.length === 0) return null;
+        if (tareasFranja.length === 0) return null;
         const plegada = estaPlegada(franja.id, tareasFranja);
         const hechasFranja = tareasFranja.filter((tarea) => completadas.includes(tarea.id)).length;
         const enCurso = esHoy && franjaActual === franja.id;
-        const totalFranja = tareasFranja.length + citasFranja.length;
+        const totalFranja = tareasFranja.length;
 
         return (
           <section
