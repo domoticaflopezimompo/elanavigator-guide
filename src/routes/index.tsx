@@ -1,13 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Calendar, ClipboardPlus, Pencil, Settings } from "lucide-react";
+import { ClipboardPlus, Pencil } from "lucide-react";
 import { Calendario } from "@/components/Calendario";
 import { AgendaDia } from "@/components/AgendaDia";
 import { EditorDialogo, type Campo, type Valores } from "@/components/EditorDialogo";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
@@ -17,11 +14,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useColeccion } from "@/hooks/use-coleccion";
-import { useConfiguracion } from "@/hooks/use-configuracion";
 import { tareas as tareasIniciales } from "@/data/tareas";
 import { INICIALES, normalizar, type FichaSeccion } from "@/lib/secciones";
-import { claveFecha, esMismoDia, formatoLargo } from "@/lib/agenda";
-import { listarCitasDelDia, type CitaCalendario } from "@/lib/calendar";
+import { esMismoDia, formatoLargo } from "@/lib/agenda";
 import type { Tarea } from "@/data/tipos";
 
 const TITULO = "Tareas del día — Cuidados ELA";
@@ -74,13 +69,9 @@ function Index() {
   const [seleccionada, setSeleccionada] = useState<Date>(hoy);
   const [mes, setMes] = useState<Date>(new Date(hoy.getFullYear(), hoy.getMonth(), 1));
   const [ahora, setAhora] = useState<Date | null>(null);
-  const [citas, setCitas] = useState<CitaCalendario[]>([]);
-  const [citasError, setCitasError] = useState<string | null>(null);
-  const [configAbierta, setConfigAbierta] = useState(false);
   const [creandoFichaCuidador, setCreandoFichaCuidador] = useState(false);
   const [eligiendoFicha, setEligiendoFicha] = useState(false);
   const [editandoFicha, setEditandoFicha] = useState<FichaCuidador | null>(null);
-  const { config, cargado: configCargado, guardar: guardarConfig } = useConfiguracion();
 
   // Reloj solo en cliente para no romper la hidratación.
   useEffect(() => {
@@ -89,38 +80,6 @@ function Index() {
     return () => clearInterval(id);
   }, []);
 
-  // Cargar citas del calendario de Google cuando esté activado (solo Paciente).
-  useEffect(() => {
-    if (!configCargado || !config.googleCalendarEnabled) {
-      setCitas([]);
-      setCitasError(null);
-      return;
-    }
-
-    let activo = true;
-    setCitasError(null);
-
-    const zonaHoraria = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    void listarCitasDelDia({
-      data: {
-        fecha: claveFecha(seleccionada),
-        calendarId: config.googleCalendarId || "primary",
-        zonaHoraria,
-      },
-    }).then(({ citas, error }) => {
-      if (!activo) return;
-      if (error) {
-        setCitasError(error);
-        setCitas([]);
-      } else {
-        setCitas(citas);
-      }
-    });
-
-    return () => {
-      activo = false;
-    };
-  }, [seleccionada, config.googleCalendarEnabled, config.googleCalendarId, configCargado]);
 
   const colMedicacion = useColeccion<{ id: string }>(
     "medicacion",
@@ -195,16 +154,6 @@ function Index() {
             {formatoLargo(seleccionada)}
           </h1>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Button
-            variant="outline"
-            onClick={() => setConfigAbierta(true)}
-            aria-label="Configurar calendario"
-          >
-            <Settings className="h-4 w-4" />
-            <span className="hidden sm:inline">Calendario</span>
-          </Button>
-        </div>
       </header>
 
       <div className="grid gap-6 md:grid-cols-[320px_1fr] md:items-start">
@@ -238,7 +187,6 @@ function Index() {
               seleccionada={seleccionada}
               hoy={hoy}
               ahora={ahora}
-              citas={citas}
             />
           </TabsContent>
           <TabsContent value="cuidador" className="mt-6">
@@ -333,58 +281,6 @@ function Index() {
         onGuardar={guardarEdicionFichaCuidador}
       />
 
-      <Dialog open={configAbierta} onOpenChange={setConfigAbierta}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Calendar className="text-primary h-5 w-5" />
-              Calendario de Google
-            </DialogTitle>
-            <DialogDescription>
-              Activa la sincronización para ver las citas del paciente en la sección Hoy.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4 py-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="calendar-enabled" className="flex flex-col gap-1">
-                <span>Sincronizar citas</span>
-                <span className="text-muted-foreground text-xs font-normal">
-                  Muestra las citas del calendario junto a las tareas.
-                </span>
-              </Label>
-              <Switch
-                id="calendar-enabled"
-                checked={config.googleCalendarEnabled ?? false}
-                onCheckedChange={(checked) =>
-                  guardarConfig({ ...config, googleCalendarEnabled: checked })
-                }
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="calendar-id">ID del calendario</Label>
-              <Input
-                id="calendar-id"
-                value={config.googleCalendarId ?? "primary"}
-                onChange={(e) =>
-                  guardarConfig({ ...config, googleCalendarId: e.target.value || "primary" })
-                }
-                placeholder="primary"
-              />
-              <p className="text-muted-foreground text-xs">
-                Usa "primary" para el calendario principal de la cuenta conectada.
-              </p>
-            </div>
-
-            {citasError ? (
-              <div className="bg-destructive/10 text-destructive rounded-lg p-3 text-sm">
-                {citasError}
-              </div>
-            ) : null}
-          </div>
-        </DialogContent>
-      </Dialog>
 
       <p className="border-border text-muted-foreground mt-12 border-t pt-6 text-sm">
         Esta web es una ayuda organizativa para el equipo de cuidados. No sustituye las

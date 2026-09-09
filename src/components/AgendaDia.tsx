@@ -2,7 +2,6 @@ import { useMemo, useState, type ReactNode } from "react";
 import { ChevronDown, Clock3, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { TareaItem } from "@/components/TareaItem";
-import { CitaCalendarioItem } from "@/components/CitaCalendarioItem";
 import { FichaDialogo } from "@/components/FichaDialogo";
 import { EditorDialogo, type Campo, type Valores } from "@/components/EditorDialogo";
 import { Badge } from "@/components/ui/badge";
@@ -16,7 +15,6 @@ import {
   FRANJAS,
   claveFecha,
   esMismoDia,
-  franjaDeHora,
   franjaDeMinutos,
   horaCorta,
   indiceFranja,
@@ -24,7 +22,6 @@ import {
   minutosDeHora,
   tareasDelDia,
 } from "@/lib/agenda";
-import type { CitaCalendario } from "@/lib/calendar";
 import type { Franja, Tarea } from "@/data/tipos";
 
 function campos(
@@ -140,7 +137,7 @@ interface Props {
   seleccionada: Date;
   hoy: Date;
   ahora: Date | null;
-  citas?: CitaCalendario[];
+  
   /** Secciones elegibles en el desplegable (por defecto todas las generales). */
   secciones?: Seccion[];
   /** Botón extra que se muestra encima de "Añadir tarea". */
@@ -157,7 +154,7 @@ export function AgendaDia({
   seleccionada,
   hoy,
   ahora,
-  citas = [],
+  
   secciones = SECCIONES,
   accionCrear,
   etiquetaTareas,
@@ -337,22 +334,17 @@ export function AgendaDia({
       </div>
 
       {FRANJAS.map((franja) => {
-        const tareasFranja = delDia.filter((tarea) => tarea.franja === franja.id);
-        const citasFranja = citas.filter((cita) => franjaDeHora(cita.horaInicio) === franja.id);
-        const elementos = [
-          ...tareasFranja.map((tarea) => ({ tipo: "tarea" as const, tarea })),
-          ...citasFranja.map((cita) => ({ tipo: "cita" as const, cita })),
-        ].sort((a, b) => {
-          const horaA = a.tipo === "tarea" ? a.tarea.hora : a.cita.horaInicio;
-          const horaB = b.tipo === "tarea" ? b.tarea.hora : b.cita.horaInicio;
-          return (minutosDeHora(horaA) ?? 24 * 60) - (minutosDeHora(horaB) ?? 24 * 60);
-        });
+        const tareasFranja = delDia
+          .filter((tarea) => tarea.franja === franja.id)
+          .sort(
+            (a, b) => (minutosDeHora(a.hora) ?? 24 * 60) - (minutosDeHora(b.hora) ?? 24 * 60),
+          );
 
-        if (elementos.length === 0) return null;
+        if (tareasFranja.length === 0) return null;
         const plegada = estaPlegada(franja.id, tareasFranja);
         const hechasFranja = tareasFranja.filter((tarea) => completadas.includes(tarea.id)).length;
         const enCurso = esHoy && franjaActual === franja.id;
-        const totalFranja = tareasFranja.length + citasFranja.length;
+        const totalFranja = tareasFranja.length;
 
         return (
           <section
@@ -383,36 +375,29 @@ export function AgendaDia({
               </span>
             </button>
             <div className={`space-y-3 ${plegada ? "hidden" : ""}`}>
-              {elementos.map((elemento, indice) => {
-                const anterior = elementos[indice - 1];
-                const siguiente = elementos[indice + 1];
-                return elemento.tipo === "tarea" ? (
-                   <TareaItem
-                     key={elemento.tarea.id}
-                     tarea={elemento.tarea}
-                     etiqueta={etiquetaTareas}
-                     hecha={completadas.includes(elemento.tarea.id)}
-                    atrasada={estaAtrasada(elemento.tarea)}
-                    proxima={proxima?.id === elemento.tarea.id}
-                    onAbrir={() => setAbierta(elemento.tarea)}
-                    onAlternar={() => alternarConAviso(elemento.tarea)}
-                    puedeSubir={indice > 0 && anterior?.tipo === "tarea"}
-                    puedeBajar={indice < elementos.length - 1 && siguiente?.tipo === "tarea"}
-                    onSubir={() =>
-                      anterior?.tipo === "tarea" && intercambiar(elemento.tarea.id, anterior.tarea.id)
-                    }
-                    onBajar={() =>
-                      siguiente?.tipo === "tarea" &&
-                      intercambiar(elemento.tarea.id, siguiente.tarea.id)
-                    }
+              {tareasFranja.map((tarea, indice) => {
+                const anterior = tareasFranja[indice - 1];
+                const siguiente = tareasFranja[indice + 1];
+                return (
+                  <TareaItem
+                    key={tarea.id}
+                    tarea={tarea}
+                    etiqueta={etiquetaTareas}
+                    hecha={completadas.includes(tarea.id)}
+                    atrasada={estaAtrasada(tarea)}
+                    proxima={proxima?.id === tarea.id}
+                    onAbrir={() => setAbierta(tarea)}
+                    onAlternar={() => alternarConAviso(tarea)}
+                    puedeSubir={indice > 0}
+                    puedeBajar={indice < tareasFranja.length - 1}
+                    onSubir={() => anterior && intercambiar(tarea.id, anterior.id)}
+                    onBajar={() => siguiente && intercambiar(tarea.id, siguiente.id)}
                     onEditar={() => {
                       setCreando(false);
-                      setEditando(elemento.tarea);
+                      setEditando(tarea);
                     }}
-                    onEliminar={() => eliminar(elemento.tarea.id)}
+                    onEliminar={() => eliminar(tarea.id)}
                   />
-                ) : (
-                  <CitaCalendarioItem key={elemento.cita.id} cita={elemento.cita} />
                 );
               })}
             </div>
@@ -420,7 +405,7 @@ export function AgendaDia({
         );
       })}
 
-      {delDia.length === 0 && citas.length === 0 ? (
+      {delDia.length === 0 ? (
         <p className="border-border text-muted-foreground rounded-2xl border border-dashed p-8 text-center">
           No hay tareas programadas para este día.
         </p>
