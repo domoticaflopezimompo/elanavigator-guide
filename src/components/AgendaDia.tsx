@@ -336,7 +336,7 @@ export function AgendaDia({
           );
 
         if (tareasFranja.length === 0) return null;
-        const plegada = estaPlegada(franja.id, tareasFranja);
+        const plegada = estaPlegada(franja.id);
         const hechasFranja = tareasFranja.filter((tarea) => completadas.includes(tarea.id)).length;
         const enCurso = esHoy && franjaActual === franja.id;
         const totalFranja = tareasFranja.length;
