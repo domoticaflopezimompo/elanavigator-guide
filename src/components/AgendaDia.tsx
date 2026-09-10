@@ -235,14 +235,9 @@ export function AgendaDia({
     });
   };
 
-  const estaPlegada = (franja: Franja, tareasFranja: Tarea[]) => {
+  const estaPlegada = (franja: Franja) => {
     const manual = plegadas[franja];
-    if (manual !== undefined) return manual;
-    if (diaPasado) return false;
-    if (!esHoy || franjaActual === null) return false;
-    const pasada = indiceFranja(franja) < indiceFranja(franjaActual);
-    const todasHechas = tareasFranja.every((tarea) => completadas.includes(tarea.id));
-    return pasada && todasHechas;
+    return manual ?? false;
   };
 
   const guardar = (valores: Valores) => {
@@ -341,7 +336,7 @@ export function AgendaDia({
           );
 
         if (tareasFranja.length === 0) return null;
-        const plegada = estaPlegada(franja.id, tareasFranja);
+        const plegada = estaPlegada(franja.id);
         const hechasFranja = tareasFranja.filter((tarea) => completadas.includes(tarea.id)).length;
         const enCurso = esHoy && franjaActual === franja.id;
         const totalFranja = tareasFranja.length;
