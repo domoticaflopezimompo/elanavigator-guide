@@ -1,23 +1,39 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
+const INTERVALO_REFRESCO = 15_000;
+
 /**
  * Colección compartida: se guarda en la nube, así todos los dispositivos
  * que abren la web ven y editan exactamente el mismo contenido.
+ *
+ * La sincronización usa tiempo real cuando está disponible y, además, una
+ * recarga periódica (y al volver a la pestaña) por si la conexión en vivo
+ * está bloqueada por la red o el servidor.
  */
 export function useColeccion<T extends { id: string }>(clave: string, iniciales: T[]) {
   const [items, setItems] = useState<T[]>(iniciales);
   const [cargado, setCargado] = useState(false);
   const inicialesRef = useRef(iniciales);
   inicialesRef.current = iniciales;
+  // Marca del último cambio aplicado, para no pisar lo que acabamos de guardar.
+  const ultimaMarcaRef = useRef<number>(0);
 
   useEffect(() => {
     let activo = true;
+    ultimaMarcaRef.current = 0;
+
+    const aplicar = (datos: T[] | null | undefined, marca?: string | null) => {
+      const instante = marca ? Date.parse(marca) : Date.now();
+      if (Number.isFinite(instante) && instante < ultimaMarcaRef.current) return;
+      ultimaMarcaRef.current = Number.isFinite(instante) ? instante : Date.now();
+      setItems(datos ?? []);
+    };
 
     const cargar = async () => {
       const { data, error } = await supabase
         .from("colecciones")
-        .select("datos")
+        .select("datos, updated_at")
         .eq("clave", clave)
         .maybeSingle();
 
@@ -26,7 +42,7 @@ export function useColeccion<T extends { id: string }>(clave: string, iniciales:
       if (!activo) return;
 
       if (data) {
-        setItems((data.datos as unknown as T[]) ?? []);
+        aplicar(data.datos as unknown as T[], data.updated_at);
       } else {
         // Primera vez: sembramos el contenido inicial en la nube.
         const { error: errorSemilla } = await supabase
@@ -47,14 +63,28 @@ export function useColeccion<T extends { id: string }>(clave: string, iniciales:
         "postgres_changes",
         { event: "*", schema: "public", table: "colecciones", filter: `clave=eq.${clave}` },
         (payload) => {
-          const fila = payload.new as { datos?: T[] } | null;
-          if (fila?.datos) setItems(fila.datos);
+          const fila = payload.new as { datos?: T[]; updated_at?: string } | null;
+          if (fila?.datos) aplicar(fila.datos, fila.updated_at);
         },
       )
       .subscribe();
 
+    const temporizador = setInterval(() => {
+      if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
+      void cargar();
+    }, INTERVALO_REFRESCO);
+
+    const alVolver = () => {
+      if (document.visibilityState === "visible") void cargar();
+    };
+    document.addEventListener("visibilitychange", alVolver);
+    window.addEventListener("focus", alVolver);
+
     return () => {
       activo = false;
+      clearInterval(temporizador);
+      document.removeEventListener("visibilitychange", alVolver);
+      window.removeEventListener("focus", alVolver);
       void supabase.removeChannel(canal);
     };
   }, [clave]);
@@ -62,12 +92,11 @@ export function useColeccion<T extends { id: string }>(clave: string, iniciales:
   const persistir = useCallback(
     async (siguientes: T[]) => {
       setItems(siguientes);
+      const marca = new Date().toISOString();
+      ultimaMarcaRef.current = Date.parse(marca);
       const { data, error } = await supabase
         .from("colecciones")
-        .upsert(
-          { clave, datos: siguientes as never, updated_at: new Date().toISOString() },
-          { onConflict: "clave" },
-        )
+        .upsert({ clave, datos: siguientes as never, updated_at: marca }, { onConflict: "clave" })
         .select()
         .maybeSingle();
 
